@@ -11,13 +11,43 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
+import { Switch } from "@/components/ui/switch";
+import { Card, CardContent } from "@/components/ui/card";
 
-const schema = z.object({
-  quantity: z.coerce.number().int().min(1).max(99),
-  name: z.string().min(1),
-  partner: z.string().min(1),
-  date: z.date(),
-});
+const nameRegex = /^[A-Za-zÄÖÜäöüß \-&]{1,24}$/;
+
+const schema = z
+  .object({
+    quantity: z.coerce.number().int().min(1).max(99),
+    personalizationEnabled: z.boolean().default(false),
+    name: z
+      .string()
+      .max(24)
+      .regex(nameRegex, { message: "Bitte nur Buchstaben, Leerzeichen, - und & (1–24 Zeichen)." })
+      .optional(),
+    partner: z
+      .string()
+      .max(24)
+      .regex(nameRegex, { message: "Bitte nur Buchstaben, Leerzeichen, - und & (1–24 Zeichen)." })
+      .optional(),
+    date: z.date().optional(),
+  })
+  .superRefine((v, ctx) => {
+    if (v.personalizationEnabled) {
+      if (!v.name) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["name"], message: "Bitte gib deinen Namen ein." });
+      if (!v.partner) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["partner"], message: "Bitte gib den Partnernamen ein." });
+      if (!v.date) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["date"], message: "Bitte wähle ein Datum." });
+      } else {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const d = new Date(v.date);
+        d.setHours(0, 0, 0, 0);
+        if (d < today)
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["date"], message: "Datum darf nicht in der Vergangenheit liegen." });
+      }
+    }
+  });
 
 type FormData = z.infer<typeof schema>;
 
@@ -28,21 +58,32 @@ export default function ProductDetail() {
   const product = products.find((p) => p.slug === slug);
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { quantity: 1, name: "", partner: "", date: new Date() },
+    defaultValues: { quantity: 1, personalizationEnabled: false, name: "", partner: "", date: undefined },
     mode: "onChange",
   });
 
   if (!product) return <div className="container py-10">Not found</div>;
 
   const submit = (data: FormData) => {
-    const search = new URLSearchParams({
-      product: product.slug,
-      qty: String(data.quantity),
-      name: data.name,
-      partner: data.partner,
-      date: data.date.toISOString(),
-    }).toString();
-    navigate(`/checkout?${search}`);
+    const payload = {
+      productId: product.id,
+      productTitle: product.title,
+      imageUrl: product.images[0],
+      unitPrice: product.price,
+      quantity: data.quantity,
+      personalizationEnabled: !!data.personalizationEnabled,
+      personalization: data.personalizationEnabled
+        ? {
+            name: data.name!,
+            partnerName: data.partner!,
+            date: data.date ? data.date.toISOString() : undefined,
+          }
+        : null,
+    };
+    try {
+      localStorage.setItem("checkoutSelection", JSON.stringify(payload));
+    } catch {}
+    navigate("/checkout");
   };
 
   return (
@@ -59,42 +100,73 @@ export default function ProductDetail() {
 
           <form onSubmit={form.handleSubmit(submit)} className="mt-6 space-y-4">
             <div>
-              <label className="block text-sm mb-1">{t("product.quantity")}</label>
+              <label className="block text-sm mb-1">Menge</label>
               <Input type="number" min={1} max={99} {...form.register("quantity", { valueAsNumber: true })} />
               {form.formState.errors.quantity && (
                 <p className="text-destructive text-sm mt-1">{form.formState.errors.quantity.message as string}</p>
               )}
             </div>
-            <div>
-              <label className="block text-sm mb-1">{t("product.name")}</label>
-              <Input {...form.register("name")} />
-              {form.formState.errors.name && <p className="text-destructive text-sm mt-1">{t("product.name")} {" "}</p>}
+
+            <div className="flex items-center justify-between py-2">
+              <label className="text-sm">Personalisierung hinzufügen?</label>
+              <Switch
+                checked={!!form.watch("personalizationEnabled")}
+                onCheckedChange={(v) => form.setValue("personalizationEnabled", v, { shouldValidate: true })}
+              />
             </div>
-            <div>
-              <label className="block text-sm mb-1">{t("product.partnerName")}</label>
-              <Input {...form.register("partner")} />
-              {form.formState.errors.partner && <p className="text-destructive text-sm mt-1">{t("product.partnerName")} {" "}</p>}
-            </div>
-            <div>
-              <label className="block text-sm mb-1">{t("product.date")}</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" type="button" className="w-full justify-start font-normal">
-                    {form.watch("date") ? format(form.watch("date"), "PPP") : t("product.date")}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent align="start" className="p-0">
-                  <Calendar
-                    mode="single"
-                    selected={form.watch("date")}
-                    onSelect={(d) => d && form.setValue("date", d, { shouldValidate: true })}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              {form.formState.errors.date && <p className="text-destructive text-sm mt-1">{t("product.date")} {" "}</p>}
-            </div>
-            <Button type="submit" className="w-full">{t("cta.inquiry")}</Button>
+
+            {form.watch("personalizationEnabled") && (
+              <Card>
+                <CardContent className="pt-4 space-y-4">
+                  <div>
+                    <label className="block text-sm mb-1">Dein Name</label>
+                    <Input {...form.register("name")} />
+                    {form.formState.errors.name && (
+                      <p className="text-destructive text-sm mt-1">{form.formState.errors.name.message as string}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm mb-1">Partnername</label>
+                    <Input {...form.register("partner")} />
+                    {form.formState.errors.partner && (
+                      <p className="text-destructive text-sm mt-1">{form.formState.errors.partner.message as string}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm mb-1">Datum</label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" type="button" className="w-full justify-start font-normal">
+                          {form.watch("date") ? format(form.watch("date") as Date, "dd.MM.yyyy") : "Datum"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent align="start" className="p-0">
+                        <Calendar
+                          mode="single"
+                          selected={form.watch("date")}
+                          onSelect={(d) => d && form.setValue("date", d, { shouldValidate: true })}
+                          disabled={(d) => {
+                            const today = new Date(); today.setHours(0,0,0,0);
+                            const dd = new Date(d); dd.setHours(0,0,0,0);
+                            return dd < today;
+                          }}
+                          initialFocus
+                          className="p-3 pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    {form.formState.errors.date && (
+                      <p className="text-destructive text-sm mt-1">{form.formState.errors.date.message as string}</p>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Die Gravur-Vorschau ist symbolisch. Wir gravieren exakt nach deinen Angaben.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
+            <Button type="submit" className="w-full">Anfrage</Button>
           </form>
         </div>
       </div>

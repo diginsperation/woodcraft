@@ -9,8 +9,9 @@ import { Seo } from "@/components/Seo";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
 
-const schema = z.object({
+const baseSchema = z.object({
   name: z.string().min(1),
   email: z.string().email(),
   phone: z.string().min(5),
@@ -18,13 +19,10 @@ const schema = z.object({
   zip: z.string().min(3),
   city: z.string().min(2),
   country: z.string().min(2),
-  personal_name: z.string().min(1),
-  personal_partner: z.string().min(1),
-  personal_date: z.string().min(4),
   notes: z.string().optional(),
 });
 
-type FormData = z.infer<typeof schema>;
+type BaseFormData = z.infer<typeof baseSchema>;
 
 function useQuery() {
   const { search } = useLocation();
@@ -36,17 +34,52 @@ export default function Checkout() {
   const navigate = useNavigate();
   const query = useQuery();
   const slug = query.get("product") || "";
-  const qty = Number(query.get("qty") || 1);
-  const product = products.find((p) => p.slug === slug);
-  const total = product ? (product.price * qty) / 100 : 0;
+  const selectionRaw = typeof window !== "undefined" ? localStorage.getItem("checkoutSelection") : null;
+  const selection = selectionRaw ? JSON.parse(selectionRaw) : null;
+  const product = selection
+    ? products.find((p) => p.id === selection.productId)
+    : products.find((p) => p.slug === slug);
+  const qty = selection ? selection.quantity : Number(query.get("qty") || 1);
+  const unitPrice = selection?.unitPrice ?? (product?.price ?? 0);
+  const total = product ? (unitPrice * qty) / 100 : 0;
+  const personalizationEnabled = !!selection?.personalizationEnabled;
 
-  const form = useForm<FormData>({
+  const nameRegex = /^[A-Za-zÄÖÜäöüß \-&]{1,24}$/;
+  const schema = personalizationEnabled
+    ? baseSchema.merge(
+        z.object({
+          personal_name: z
+            .string()
+            .min(1)
+            .max(24)
+            .regex(nameRegex, "Bitte nur Buchstaben, Leerzeichen, - und & (1–24 Zeichen)."),
+          personal_partner: z
+            .string()
+            .min(1)
+            .max(24)
+            .regex(nameRegex, "Bitte nur Buchstaben, Leerzeichen, - und & (1–24 Zeichen)."),
+          personal_date: z.string().refine((val) => {
+            const m = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(val || "");
+            if (!m) return false;
+            const d = new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            d.setHours(0, 0, 0, 0);
+            return d >= today;
+          }, "Datum darf nicht in der Vergangenheit liegen."),
+        })
+      )
+    : baseSchema;
+
+  const form = useForm<any>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      personal_name: query.get("name") || "",
-      personal_partner: query.get("partner") || "",
-      personal_date: query.get("date")?.slice(0, 10) || "",
-    },
+    defaultValues: personalizationEnabled
+      ? {
+          personal_name: selection?.personalization?.name || "",
+          personal_partner: selection?.personalization?.partnerName || "",
+          personal_date: selection?.personalization?.date ? format(new Date(selection.personalization.date), "dd.MM.yyyy") : "",
+        }
+      : {},
     mode: "onChange",
   });
 
@@ -68,36 +101,54 @@ export default function Checkout() {
             <div>
               <p className="font-medium">{product.title}</p>
               <p className="text-sm text-muted-foreground">x{qty}</p>
-              <p className="mt-1">{(product.price / 100).toFixed(2)} €</p>
-              <p className="text-sm text-muted-foreground">{t("checkout.vatIncluded")}</p>
+              <p className="mt-1">{(unitPrice / 100).toFixed(2)} €</p>
             </div>
           </div>
           <hr className="my-3" />
           <p className="font-semibold">Summe: {total.toFixed(2)} €</p>
-          <p className="text-sm text-muted-foreground">{t("checkout.freeShipping")}</p>
+          <p className="text-sm text-muted-foreground">Versand kostenlos · Preis inkl. MwSt.</p>
+
+          {personalizationEnabled && selection?.personalization && (
+            <>
+              <hr className="my-3" />
+              <h3 className="font-medium mb-2">Personalisierung</h3>
+              <ul className="text-sm space-y-1">
+                <li>Name: {selection.personalization.name}</li>
+                <li>Partnername: {selection.personalization.partnerName}</li>
+                <li>
+                  Datum:{" "}
+                  {selection.personalization.date
+                    ? format(new Date(selection.personalization.date), "dd.MM.yyyy")
+                    : ""}
+                </li>
+              </ul>
+            </>
+          )}
         </aside>
 
         <form onSubmit={form.handleSubmit(submit)} className="md:col-span-2 space-y-6">
+        {personalizationEnabled && (
           <section aria-labelledby="personalization" className="space-y-3">
-            <h2 id="personalization" className="font-medium">{t("product.shortDescription")}</h2>
+            <h2 id="personalization" className="font-medium">Personalisierung</h2>
             <div className="grid md:grid-cols-3 gap-3">
               <div>
-                <label className="block text-sm mb-1">{t("product.name")}</label>
+                <label className="block text-sm mb-1">Dein Name</label>
                 <Input {...form.register("personal_name")} />
-                {form.formState.errors.personal_name && <p className="text-destructive text-sm mt-1">{t("product.name")}</p>}
+                {form.formState.errors.personal_name && <p className="text-destructive text-sm mt-1">{form.formState.errors.personal_name.message as string}</p>}
               </div>
               <div>
-                <label className="block text-sm mb-1">{t("product.partnerName")}</label>
+                <label className="block text-sm mb-1">Partnername</label>
                 <Input {...form.register("personal_partner")} />
-                {form.formState.errors.personal_partner && <p className="text-destructive text-sm mt-1">{t("product.partnerName")}</p>}
+                {form.formState.errors.personal_partner && <p className="text-destructive text-sm mt-1">{form.formState.errors.personal_partner.message as string}</p>}
               </div>
               <div>
-                <label className="block text-sm mb-1">{t("product.date")}</label>
-                <Input {...form.register("personal_date")} />
-                {form.formState.errors.personal_date && <p className="text-destructive text-sm mt-1">{t("product.date")}</p>}
+                <label className="block text-sm mb-1">Datum (TT.MM.JJJJ)</label>
+                <Input placeholder="TT.MM.JJJJ" {...form.register("personal_date")} />
+                {form.formState.errors.personal_date && <p className="text-destructive text-sm mt-1">{form.formState.errors.personal_date.message as string}</p>}
               </div>
             </div>
           </section>
+        )}
 
           <section aria-labelledby="contact" className="space-y-3">
             <h2 id="contact" className="font-medium">{t("checkout.customer")}</h2>
@@ -152,7 +203,7 @@ export default function Checkout() {
             </div>
           </section>
 
-          <Button type="submit" className="w-full md:w-auto">{t("cta.sendInquiry")}</Button>
+          <Button type="submit" className="w-full md:w-auto">Anfrage absenden</Button>
         </form>
       </div>
     </div>
