@@ -223,13 +223,13 @@ const allChecked = agreeTerms && agreeWithdrawal && agreePay;
               <label className="flex items-start gap-3">
                 <Checkbox checked={agreeTerms} onCheckedChange={(v) => setAgreeTerms(!!v)} />
                 <span>
-                  Ich habe die <Link to="/agb">AGB</Link> und <Link to="/datenschutz">Datenschutzerklärung</Link> gelesen und akzeptiere sie.
+                  Ich habe die <Link to="/agb" className="underline underline-offset-2 text-primary hover:opacity-90">AGB</Link> und <Link to="/datenschutz" className="underline underline-offset-2 text-primary hover:opacity-90">Datenschutzerklärung</Link> gelesen und akzeptiere sie.
                 </span>
               </label>
               <label className="flex items-start gap-3">
                 <Checkbox checked={agreeWithdrawal} onCheckedChange={(v) => setAgreeWithdrawal(!!v)} />
                 <span>
-                  {personalizationEnabled ? strings.checkout.agree.withdrawalPersonal : strings.checkout.agree.withdrawalStandard} (<Link to="/widerruf">Widerrufsbelehrung</Link>)
+                  {personalizationEnabled ? strings.checkout.agree.withdrawalPersonal : strings.checkout.agree.withdrawalStandard} (<Link to="/widerruf" className="underline underline-offset-2 text-primary hover:opacity-90">Widerrufsbelehrung</Link>)
                 </span>
               </label>
               <label className="flex items-start gap-3">
