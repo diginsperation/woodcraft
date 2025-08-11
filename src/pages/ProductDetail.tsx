@@ -20,16 +20,22 @@ const schema = z
   .object({
     quantity: z.coerce.number().int().min(1).max(99),
     personalizationEnabled: z.boolean().default(false),
-    name: z
-      .string()
-      .max(24)
-      .regex(nameRegex, { message: "Bitte nur Buchstaben, Leerzeichen, - und & (1–24 Zeichen)." })
-      .optional(),
-    partner: z
-      .string()
-      .max(24)
-      .regex(nameRegex, { message: "Bitte nur Buchstaben, Leerzeichen, - und & (1–24 Zeichen)." })
-      .optional(),
+    name: z.preprocess(
+      (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+      z
+        .string()
+        .max(24)
+        .regex(nameRegex, { message: "Bitte nur Buchstaben, Leerzeichen, - und & (1–24 Zeichen)." })
+        .optional()
+    ),
+    partner: z.preprocess(
+      (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+      z
+        .string()
+        .max(24)
+        .regex(nameRegex, { message: "Bitte nur Buchstaben, Leerzeichen, - und & (1–24 Zeichen)." })
+        .optional()
+    ),
     date: z.date().optional(),
   })
   .superRefine((v, ctx) => {
