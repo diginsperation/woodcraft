@@ -22,6 +22,7 @@ export const strings = {
     processText: "Vom Rohholz bis zum fertigen Unikat – mit viel Liebe zum Detail.",
     watchVideo: "Video ansehen",
     contact: "Kontakt",
+    processCta: "So entsteht dein Produkt",
   },
   productList: {
     title: "Produkte",

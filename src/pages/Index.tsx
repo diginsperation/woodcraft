@@ -35,9 +35,14 @@ const Index = () => {
             <p className="mt-4 text-lg md:text-xl text-primary-foreground/90">
               {strings.hero.subtitle}
             </p>
-            <Button asChild className="mt-8">
-              <Link to="#products-section">{strings.hero.cta}</Link>
-            </Button>
+            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Button asChild>
+                <Link to="/products">{strings.hero.cta}</Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <a href="#process">{strings.home.processCta}</a>
+              </Button>
+            </div>
           </div>
         </div>
       </header>
