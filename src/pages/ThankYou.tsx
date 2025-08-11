@@ -9,12 +9,13 @@ export default function ThankYou() {
   const product = state?.product;
   const qty = state?.qty;
   const data = state?.data;
+  const personalized = !!state?.personalizationEnabled;
 
   return (
     <div className="container py-10">
       <Seo title={`${strings.thank.headline} – ${strings.brandName}`} description={strings.thank.text} canonicalPath="/thank-you" />
       <h1 className="font-playfair text-3xl md:text-4xl">{strings.thank.headline}</h1>
-      <p className="mt-2 text-muted-foreground">{strings.thank.text}</p>
+      <p className="mt-2 text-muted-foreground">{personalized ? strings.thank.textPersonalized : strings.thank.textStandard}</p>
 
       {product && (
         <section className="mt-6 grid md:grid-cols-2 gap-6">
