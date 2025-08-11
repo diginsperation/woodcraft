@@ -3,14 +3,54 @@ import heroImage from "@/assets/hero-wood.jpg";
 import { Button } from "@/components/ui/button";
 import { strings } from "@/content/strings.de";
 import { Seo } from "@/components/Seo";
-import { categories } from "@/data/products";
 import { CategoryCard } from "@/components/CategoryCard";
 import { ProductCard } from "@/components/ProductCard";
-import { products } from "@/data/products";
+import { useEffect, useMemo, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import wood1 from "@/assets/wood-board-1.jpg"; // placeholder image for DB-backed cards
+
 
 const Index = () => {
-  
-  const bestsellers = products.filter((p) => p.bestseller).slice(0, 6);
+  const [dbCategories, setDbCategories] = useState<any[]>([]);
+  const [dbProducts, setDbProducts] = useState<any[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    // fetch categories
+    supabase.from("categories").select("slug,name,description,sort_order").order("sort_order", { ascending: true })
+      .then(({ data }) => setDbCategories(data ?? []));
+    // fetch latest active products
+    supabase.from("products").select("id,slug,title,description,base_price,created_at,active").eq("active", true).order("created_at", { ascending: false }).limit(6)
+      .then(({ data }) => setDbProducts(data ?? []));
+    // check if current user is admin (for empty states)
+    supabase.auth.getUser().then(async ({ data }) => {
+      const uid = data.user?.id;
+      if (!uid) return;
+      const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", uid).eq("role", "admin");
+      setIsAdmin((roles?.length ?? 0) > 0);
+    });
+  }, []);
+
+  const adaptedCategories = dbCategories.map((c) => ({
+    slug: c.slug,
+    title: c.name,
+    teaser: c.description ?? "",
+    image: wood1,
+  }));
+
+  const bestsellers = dbProducts.map((p) => ({
+    id: p.id,
+    slug: p.slug,
+    title: p.title,
+    teaser: (p.description ?? "").slice(0, 120),
+    price: Math.round(Number(p.base_price) * 100),
+    images: [wood1],
+    bestseller: false,
+    story: "",
+    material: "",
+    care: "",
+  }));
+
   return (
     <div className="min-h-screen bg-background">
       <Seo
@@ -53,8 +93,8 @@ const Index = () => {
             {strings.home.categories}
           </h2>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {categories.map((c) => (
-              <CategoryCard key={c.slug} category={c} />
+            {adaptedCategories.map((c) => (
+              <CategoryCard key={c.slug} category={c as any} />
             ))}
           </div>
         </section>
@@ -65,7 +105,7 @@ const Index = () => {
           </h2>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {bestsellers.map((p) => (
-              <ProductCard key={p.id} product={p} />)
+              <ProductCard key={p.id} product={p as any} />)
             )}
           </div>
         </section>
