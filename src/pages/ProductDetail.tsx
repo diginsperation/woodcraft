@@ -3,7 +3,7 @@ import { products } from "@/data/products";
 import { GalleryLightbox } from "@/components/GalleryLightbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useI18n } from "@/i18n/I18nProvider";
+import { strings } from "@/content/strings.de";
 import { Seo } from "@/components/Seo";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -88,7 +88,7 @@ export default function ProductDetail() {
 
   return (
     <div className="container py-10">
-      <Seo title={`${product.title} – ${t("brand.name")}`} description={product.teaser} canonicalPath={`/product/${product.slug}`} />
+      <Seo title={`${product.title} – ${strings.brandName}`} description={product.teaser} canonicalPath={`/product/${product.slug}`} />
       <div className="grid md:grid-cols-2 gap-8">
         <div>
           <GalleryLightbox images={product.images} alt={product.title} />
@@ -96,7 +96,7 @@ export default function ProductDetail() {
         <div>
           <h1 className="font-playfair text-3xl md:text-4xl">{product.title}</h1>
           <p className="mt-2 text-muted-foreground">{product.teaser}</p>
-          <p className="mt-4 text-2xl font-semibold">{(product.price / 100).toFixed(2)} € <span className="text-sm text-muted-foreground">({t("product.priceInclVat")})</span></p>
+          <p className="mt-4 text-2xl font-semibold">{(product.price / 100).toFixed(2)} € <span className="text-sm text-muted-foreground">({strings.product.priceInclVat})</span></p>
 
           <form onSubmit={form.handleSubmit(submit)} className="mt-6 space-y-4">
             <div>
@@ -108,7 +108,7 @@ export default function ProductDetail() {
             </div>
 
             <div className="flex items-center justify-between py-2">
-              <label className="text-sm">Personalisierung hinzufügen?</label>
+              <label className="text-sm">{strings.personalization.toggle}</label>
               <Switch
                 checked={!!form.watch("personalizationEnabled")}
                 onCheckedChange={(v) => form.setValue("personalizationEnabled", v, { shouldValidate: true })}
@@ -119,21 +119,21 @@ export default function ProductDetail() {
               <Card>
                 <CardContent className="pt-4 space-y-4">
                   <div>
-                    <label className="block text-sm mb-1">Dein Name</label>
+                    <label className="block text-sm mb-1">{strings.personalization.name}</label>
                     <Input {...form.register("name")} />
                     {form.formState.errors.name && (
                       <p className="text-destructive text-sm mt-1">{form.formState.errors.name.message as string}</p>
                     )}
                   </div>
                   <div>
-                    <label className="block text-sm mb-1">Partnername</label>
+                    <label className="block text-sm mb-1">{strings.personalization.partner}</label>
                     <Input {...form.register("partner")} />
                     {form.formState.errors.partner && (
                       <p className="text-destructive text-sm mt-1">{form.formState.errors.partner.message as string}</p>
                     )}
                   </div>
                   <div>
-                    <label className="block text-sm mb-1">Datum</label>
+                    <label className="block text-sm mb-1">{strings.personalization.date}</label>
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button variant="outline" type="button" className="w-full justify-start font-normal">
@@ -160,26 +160,26 @@ export default function ProductDetail() {
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Die Gravur-Vorschau ist symbolisch. Wir gravieren exakt nach deinen Angaben.
+                    {strings.personalization.hint}
                   </p>
                 </CardContent>
               </Card>
             )}
 
-            <Button type="submit" className="w-full">Anfrage</Button>
+            <Button type="submit" className="w-full">{strings.product.ctaInquiry}</Button>
           </form>
         </div>
       </div>
 
       <section className="mt-12 grid md:grid-cols-3 gap-8" aria-labelledby="details">
         <div className="md:col-span-2">
-          <h2 id="details" className="font-playfair text-2xl mb-4">{t("product.description")}</h2>
+          <h2 id="details" className="font-playfair text-2xl mb-4">{strings.product.description}</h2>
           <article className="prose max-w-none">
-            <h3>{t("product.story")}</h3>
+            <h3>{strings.product.story}</h3>
             <p>{product.story}</p>
-            <h3>{t("product.material")}</h3>
+            <h3>{strings.product.material}</h3>
             <p>{product.material}</p>
-            <h3>{t("product.care")}</h3>
+            <h3>{strings.product.care}</h3>
             <p>{product.care}</p>
           </article>
         </div>

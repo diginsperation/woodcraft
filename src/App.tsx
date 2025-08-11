@@ -10,7 +10,7 @@ import ProductDetail from "./pages/ProductDetail";
 import Checkout from "./pages/Checkout";
 import ThankYou from "./pages/ThankYou";
 import Layout from "./components/layout/Layout";
-import { I18nProvider } from "./i18n/I18nProvider";
+
 
 const queryClient = new QueryClient();
 
@@ -20,19 +20,17 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <I18nProvider>
-          <Layout>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/products" element={<ProductList />} />
-              <Route path="/product/:slug" element={<ProductDetail />} />
-              <Route path="/checkout" element={<Checkout />} />
-              <Route path="/thank-you" element={<ThankYou />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Layout>
-        </I18nProvider>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/products" element={<ProductList />} />
+            <Route path="/product/:slug" element={<ProductDetail />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/thank-you" element={<ThankYou />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Layout>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

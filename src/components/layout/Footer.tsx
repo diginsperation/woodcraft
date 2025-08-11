@@ -1,11 +1,12 @@
 import { Mail, MessageCircle, Instagram, MessageSquare } from "lucide-react";
+import { strings } from "@/content/strings.de";
 
 export default function Footer() {
   return (
     <footer id="contact" className="border-t bg-background">
       <div className="container py-10 grid gap-8 md:grid-cols-3">
         <div>
-          <h3 className="font-playfair text-xl mb-3">Kontakt</h3>
+          <h3 className="font-playfair text-xl mb-3">{strings.nav.contact}</h3>
           <p className="text-muted-foreground">Email: info@example.com</p>
           <p className="text-muted-foreground">Tel: +49 000 000000</p>
         </div>

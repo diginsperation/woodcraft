@@ -4,7 +4,7 @@ import { products } from "@/data/products";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useI18n } from "@/i18n/I18nProvider";
+import { strings } from "@/content/strings.de";
 import { Seo } from "@/components/Seo";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -30,7 +30,6 @@ function useQuery() {
 }
 
 export default function Checkout() {
-  const { t } = useI18n();
   const navigate = useNavigate();
   const query = useQuery();
   const slug = query.get("product") || "";
@@ -91,11 +90,11 @@ export default function Checkout() {
 
   return (
     <div className="container py-10">
-      <Seo title={`${t("checkout.title")} – ${t("brand.name")}`} description={t("seo.homeDescription")} canonicalPath="/checkout" />
-      <h1 className="font-playfair text-3xl md:text-4xl mb-6">{t("checkout.title")}</h1>
+      <Seo title={`${strings.checkout.title} – ${strings.brandName}`} description={strings.seo.homeDescription} canonicalPath="/checkout" />
+      <h1 className="font-playfair text-3xl md:text-4xl mb-6">{strings.checkout.title}</h1>
       <div className="grid md:grid-cols-3 gap-8">
         <aside className="md:col-span-1 rounded-lg border p-4 bg-card">
-          <h2 className="font-medium mb-2">{t("checkout.summary")}</h2>
+          <h2 className="font-medium mb-2">{strings.checkout.summary}</h2>
           <div className="flex gap-3">
             <img src={product.images[0]} alt={product.title} className="h-16 w-16 object-cover rounded-md border" />
             <div>
@@ -106,7 +105,7 @@ export default function Checkout() {
           </div>
           <hr className="my-3" />
           <p className="font-semibold">Summe: {total.toFixed(2)} €</p>
-          <p className="text-sm text-muted-foreground">Versand kostenlos · Preis inkl. MwSt.</p>
+          <p className="text-sm text-muted-foreground">{strings.checkout.shippingNote}</p>
 
           {personalizationEnabled && selection?.personalization && (
             <>
@@ -129,20 +128,20 @@ export default function Checkout() {
         <form onSubmit={form.handleSubmit(submit)} className="md:col-span-2 space-y-6">
         {personalizationEnabled && (
           <section aria-labelledby="personalization" className="space-y-3">
-            <h2 id="personalization" className="font-medium">Personalisierung</h2>
+            <h2 id="personalization" className="font-medium">{strings.checkout.personalization}</h2>
             <div className="grid md:grid-cols-3 gap-3">
               <div>
-                <label className="block text-sm mb-1">Dein Name</label>
+                <label className="block text-sm mb-1">{strings.personalization.name}</label>
                 <Input {...form.register("personal_name")} />
                 {form.formState.errors.personal_name && <p className="text-destructive text-sm mt-1">{form.formState.errors.personal_name.message as string}</p>}
               </div>
               <div>
-                <label className="block text-sm mb-1">Partnername</label>
+                <label className="block text-sm mb-1">{strings.personalization.partner}</label>
                 <Input {...form.register("personal_partner")} />
                 {form.formState.errors.personal_partner && <p className="text-destructive text-sm mt-1">{form.formState.errors.personal_partner.message as string}</p>}
               </div>
               <div>
-                <label className="block text-sm mb-1">Datum (TT.MM.JJJJ)</label>
+                <label className="block text-sm mb-1">{strings.personalization.date} (TT.MM.JJJJ)</label>
                 <Input placeholder="TT.MM.JJJJ" {...form.register("personal_date")} />
                 {form.formState.errors.personal_date && <p className="text-destructive text-sm mt-1">{form.formState.errors.personal_date.message as string}</p>}
               </div>
@@ -151,59 +150,59 @@ export default function Checkout() {
         )}
 
           <section aria-labelledby="contact" className="space-y-3">
-            <h2 id="contact" className="font-medium">{t("checkout.customer")}</h2>
+            <h2 id="contact" className="font-medium">{strings.checkout.customer}</h2>
             <div className="grid md:grid-cols-3 gap-3">
               <div>
-                <label className="block text-sm mb-1">{t("checkout.name")}</label>
+                <label className="block text-sm mb-1">{strings.checkout.name}</label>
                 <Input {...form.register("name")} />
-                {form.formState.errors.name && <p className="text-destructive text-sm mt-1">{t("checkout.name")}</p>}
+                {form.formState.errors.name && <p className="text-destructive text-sm mt-1">{strings.checkout.name}</p>}
               </div>
               <div>
-                <label className="block text-sm mb-1">{t("checkout.email")}</label>
+                <label className="block text-sm mb-1">{strings.checkout.email}</label>
                 <Input type="email" {...form.register("email")} />
-                {form.formState.errors.email && <p className="text-destructive text-sm mt-1">{t("checkout.email")}</p>}
+                {form.formState.errors.email && <p className="text-destructive text-sm mt-1">{strings.checkout.email}</p>}
               </div>
               <div>
-                <label className="block text-sm mb-1">{t("checkout.phone")}</label>
+                <label className="block text-sm mb-1">{strings.checkout.phone}</label>
                 <Input {...form.register("phone")} />
-                {form.formState.errors.phone && <p className="text-destructive text-sm mt-1">{t("checkout.phone")}</p>}
+                {form.formState.errors.phone && <p className="text-destructive text-sm mt-1">{strings.checkout.phone}</p>}
               </div>
             </div>
           </section>
 
           <section aria-labelledby="address" className="space-y-3">
-            <h2 id="address" className="font-medium">{t("checkout.address")}</h2>
+            <h2 id="address" className="font-medium">{strings.checkout.address}</h2>
             <div className="grid md:grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm mb-1">{t("checkout.street")}</label>
+                <label className="block text-sm mb-1">{strings.checkout.street}</label>
                 <Input {...form.register("street")} />
-                {form.formState.errors.street && <p className="text-destructive text-sm mt-1">{t("checkout.street")}</p>}
+                {form.formState.errors.street && <p className="text-destructive text-sm mt-1">{strings.checkout.street}</p>}
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-sm mb-1">{t("checkout.zip")}</label>
+                  <label className="block text-sm mb-1">{strings.checkout.zip}</label>
                   <Input {...form.register("zip")} />
-                  {form.formState.errors.zip && <p className="text-destructive text-sm mt-1">{t("checkout.zip")}</p>}
+                  {form.formState.errors.zip && <p className="text-destructive text-sm mt-1">{strings.checkout.zip}</p>}
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-sm mb-1">{t("checkout.city")}</label>
+                  <label className="block text-sm mb-1">{strings.checkout.city}</label>
                   <Input {...form.register("city")} />
-                  {form.formState.errors.city && <p className="text-destructive text-sm mt-1">{t("checkout.city")}</p>}
+                  {form.formState.errors.city && <p className="text-destructive text-sm mt-1">{strings.checkout.city}</p>}
                 </div>
               </div>
               <div>
-                <label className="block text-sm mb-1">{t("checkout.country")}</label>
+                <label className="block text-sm mb-1">{strings.checkout.country}</label>
                 <Input {...form.register("country")} />
-                {form.formState.errors.country && <p className="text-destructive text-sm mt-1">{t("checkout.country")}</p>}
+                {form.formState.errors.country && <p className="text-destructive text-sm mt-1">{strings.checkout.country}</p>}
               </div>
               <div>
-                <label className="block text-sm mb-1">{t("checkout.notes")}</label>
+                <label className="block text-sm mb-1">{strings.checkout.notes}</label>
                 <Textarea {...form.register("notes")} />
               </div>
             </div>
           </section>
 
-          <Button type="submit" className="w-full md:w-auto">Anfrage absenden</Button>
+          <Button type="submit" className="w-full md:w-auto">{strings.checkout.submit}</Button>
         </form>
       </div>
     </div>

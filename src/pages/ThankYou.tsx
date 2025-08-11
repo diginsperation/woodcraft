@@ -1,10 +1,10 @@
 import { useLocation, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useI18n } from "@/i18n/I18nProvider";
+import { strings } from "@/content/strings.de";
 import { Seo } from "@/components/Seo";
 
 export default function ThankYou() {
-  const { t } = useI18n();
+  
   const { state } = useLocation() as any;
   const product = state?.product;
   const qty = state?.qty;
@@ -12,9 +12,9 @@ export default function ThankYou() {
 
   return (
     <div className="container py-10">
-      <Seo title={`${t("thank.headline")} – ${t("brand.name")}`} description={t("thank.text")} canonicalPath="/thank-you" />
-      <h1 className="font-playfair text-3xl md:text-4xl">{t("thank.headline")}</h1>
-      <p className="mt-2 text-muted-foreground">{t("thank.text")}</p>
+      <Seo title={`${strings.thank.headline} – ${strings.brandName}`} description={strings.thank.text} canonicalPath="/thank-you" />
+      <h1 className="font-playfair text-3xl md:text-4xl">{strings.thank.headline}</h1>
+      <p className="mt-2 text-muted-foreground">{strings.thank.text}</p>
 
       {product && (
         <section className="mt-6 grid md:grid-cols-2 gap-6">
@@ -44,8 +44,8 @@ export default function ThankYou() {
       )}
 
       <div className="mt-8 flex gap-3">
-        <Button asChild variant="secondary"><Link to="/">{t("thank.backHome")}</Link></Button>
-        <Button asChild><Link to="/products">{t("thank.moreProducts")}</Link></Button>
+        <Button asChild variant="secondary"><Link to="/">{strings.thank.backHome}</Link></Button>
+        <Button asChild><Link to="/products">{strings.thank.moreProducts}</Link></Button>
       </div>
     </div>
   );
