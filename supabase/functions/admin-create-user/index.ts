@@ -1,7 +1,7 @@
 // IMPORTANT: Uses service role to create users, includes CORS and admin role check.
 // Requires SUPABASE_SERVICE_ROLE_KEY to be set in project secrets.
 
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
