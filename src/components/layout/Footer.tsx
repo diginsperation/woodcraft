@@ -1,5 +1,6 @@
 import { Mail, MessageCircle, Instagram, MessageSquare } from "lucide-react";
 import { strings } from "@/content/strings.de";
+import { Link } from "react-router-dom";
 
 export default function Footer() {
   return (
@@ -23,8 +24,9 @@ export default function Footer() {
           <h3 className="font-playfair text-xl mb-3">Rechtliches</h3>
           <ul className="space-y-2 text-muted-foreground">
             <li><a href="#">Impressum</a></li>
-            <li><a href="#">Datenschutz</a></li>
-            <li><a href="#">AGB</a></li>
+            <li><Link to="/datenschutz">Datenschutz</Link></li>
+            <li><Link to="/widerruf">Widerrufsbelehrung</Link></li>
+            <li><Link to="/agb">AGB</Link></li>
           </ul>
         </div>
       </div>
