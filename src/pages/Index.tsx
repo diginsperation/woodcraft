@@ -69,9 +69,9 @@ const Index = () => {
           <div className="grid md:grid-cols-2 gap-8 items-center">
             <div>
               <h2 id="process" className="font-playfair text-3xl md:text-4xl mb-4">
-                {t("home.processTitle")}
+                {strings.home.processTitle}
               </h2>
-              <p className="text-muted-foreground mb-4">{t("home.processText")}</p>
+              <p className="text-muted-foreground mb-4">{strings.home.processText}</p>
               <Button variant="outline" asChild>
                 <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noreferrer">
                   {strings.home.watchVideo}

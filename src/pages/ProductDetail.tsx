@@ -54,7 +54,7 @@ type FormData = z.infer<typeof schema>;
 export default function ProductDetail() {
   const { slug } = useParams();
   const navigate = useNavigate();
-  const { t } = useI18n();
+  
   const product = products.find((p) => p.slug === slug);
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
