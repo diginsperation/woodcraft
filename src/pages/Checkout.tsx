@@ -37,14 +37,16 @@ export default function Checkout() {
   const slug = query.get("product") || "";
   const selectionRaw = typeof window !== "undefined" ? localStorage.getItem("checkoutSelection") : null;
   const selection = selectionRaw ? JSON.parse(selectionRaw) : null;
-  const product = selection
-    ? products.find((p) => p.id === selection.productId)
-    : products.find((p) => p.slug === slug);
-  const qty = selection ? selection.quantity : Number(query.get("qty") || 1);
-  const unitPrice = selection?.unitPrice ?? (product?.price ?? 0);
-  const total = product ? (unitPrice * qty) / 100 : 0;
-const personalizationEnabled = !!selection?.personalizationEnabled;
 
+  // Prefer selection saved from ProductDetail (Supabase-based), otherwise fall back to static catalog via slug
+  const product = selection
+    ? { id: selection.productId, title: selection.productTitle, images: [selection.imageUrl] as string[] }
+    : products.find((p) => p.slug === slug) || null;
+
+  const qty = selection ? selection.quantity : Number(query.get("qty") || 1);
+  const unitPrice = selection?.unitPrice ?? (products.find((p) => p.slug === slug)?.price ?? 0);
+  const total = product ? (unitPrice * qty) / 100 : 0;
+  const personalizationEnabled = !!selection?.personalizationEnabled;
 // Zustände für rechtliche Bestätigungen und Modal
 const [agreeTerms, setAgreeTerms] = useState(false);
 const [agreeWithdrawal, setAgreeWithdrawal] = useState(false);
