@@ -1,5 +1,6 @@
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { products } from "@/data/products";
+import { supabase } from "@/integrations/supabase/client";
 import { GalleryLightbox } from "@/components/GalleryLightbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +14,10 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent } from "@/components/ui/card";
-
+import { Skeleton } from "@/components/ui/skeleton";
+import wood1 from "@/assets/wood-board-1.jpg";
+import woodDetail from "@/assets/wood-detail-1.jpg";
+import woodShop from "@/assets/wood-shop-1.jpg";
 const nameRegex = /^[A-Za-zÄÖÜäöüß \-&]{1,24}$/;
 
 const schema = z
@@ -60,22 +64,83 @@ type FormData = z.infer<typeof schema>;
 export default function ProductDetail() {
   const { slug } = useParams();
   const navigate = useNavigate();
-  
-  const product = products.find((p) => p.slug === slug);
+
+  const [loading, setLoading] = useState(true);
+  const [dbProduct, setDbProduct] = useState<any | null>(null);
+
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { quantity: 1, personalizationEnabled: false, name: "", partner: "", date: undefined },
     mode: "onChange",
   });
 
-  if (!product) return <div className="container py-10">Not found</div>;
+  useEffect(() => {
+    setLoading(true);
+    if (!slug) {
+      setDbProduct(null);
+      setLoading(false);
+      return;
+    }
+    supabase
+      .from("products")
+      .select("id,slug,title,description,base_price,active,youtube_url,seo_title,seo_description,details")
+      .eq("slug", slug)
+      .eq("active", true)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (error) {
+          setDbProduct(null);
+        } else {
+          setDbProduct(data);
+        }
+        setLoading(false);
+      });
+  }, [slug]);
+
+  const mapped = useMemo(() => {
+    if (!dbProduct) return null;
+    const details: any = (dbProduct as any).details || {};
+    const images: string[] = Array.isArray(details.images) && details.images.length ? details.images : [wood1, woodDetail, woodShop];
+    return {
+      id: dbProduct.id,
+      slug: dbProduct.slug,
+      title: dbProduct.title as string,
+      teaser: ((dbProduct.description as string | null) ?? "").slice(0, 160),
+      priceCents: Math.round(Number(dbProduct.base_price) * 100),
+      images,
+      story: details.story ?? "",
+      material: details.material ?? "",
+      care: details.care ?? "",
+      seoTitle: (dbProduct.seo_title as string | null) ?? null,
+      seoDescription: (dbProduct.seo_description as string | null) ?? null,
+      youtubeUrl: (dbProduct.youtube_url as string | null) ?? null,
+    };
+  }, [dbProduct]);
+
+  if (loading) {
+    return (
+      <div className="container py-10">
+        <div className="grid md:grid-cols-2 gap-8">
+          <Skeleton className="h-[320px] w-full" />
+          <div className="space-y-3">
+            <Skeleton className="h-8 w-2/3" />
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-6 w-1/3" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!mapped) return <div className="container py-10">Not found</div>;
 
   const submit = (data: FormData) => {
     const payload = {
-      productId: product.id,
-      productTitle: product.title,
-      imageUrl: product.images[0],
-      unitPrice: product.price,
+      productId: mapped.id,
+      productTitle: mapped.title,
+      imageUrl: mapped.images[0],
+      unitPrice: mapped.priceCents,
       quantity: data.quantity,
       personalizationEnabled: !!data.personalizationEnabled,
       personalization: data.personalizationEnabled
@@ -92,17 +157,24 @@ export default function ProductDetail() {
     navigate("/checkout");
   };
 
+  const seoTitle = mapped.seoTitle || `${mapped.title} – ${strings.brandName}`;
+  const seoDescription = mapped.seoDescription || mapped.teaser;
+  const canonicalPath = `/product/${mapped.slug}`;
+  const youtubeSrc = mapped.youtubeUrl && mapped.youtubeUrl.includes("embed")
+    ? mapped.youtubeUrl
+    : (mapped.youtubeUrl ? mapped.youtubeUrl : "https://www.youtube.com/embed/dQw4w9WgXcQ");
+
   return (
     <div className="container py-10">
-      <Seo title={`${product.title} – ${strings.brandName}`} description={product.teaser} canonicalPath={`/product/${product.slug}`} />
+      <Seo title={seoTitle} description={seoDescription} canonicalPath={canonicalPath} />
       <div className="grid md:grid-cols-2 gap-8">
         <div>
-          <GalleryLightbox images={product.images} alt={product.title} />
+          <GalleryLightbox images={mapped.images} alt={mapped.title} />
         </div>
         <div>
-          <h1 className="font-playfair text-3xl md:text-4xl">{product.title}</h1>
-          <p className="mt-2 text-muted-foreground">{product.teaser}</p>
-          <p className="mt-4 text-2xl font-semibold">{(product.price / 100).toFixed(2)} € <span className="text-sm text-muted-foreground">({strings.product.priceInclVat})</span></p>
+          <h1 className="font-playfair text-3xl md:text-4xl">{mapped.title}</h1>
+          <p className="mt-2 text-muted-foreground">{mapped.teaser}</p>
+          <p className="mt-4 text-2xl font-semibold">{(mapped.priceCents / 100).toFixed(2)} € <span className="text-sm text-muted-foreground">({strings.product.priceInclVat})</span></p>
 
           <form onSubmit={form.handleSubmit(submit)} className="mt-6 space-y-4">
             <div>
@@ -182,11 +254,11 @@ export default function ProductDetail() {
           <h2 id="details" className="font-playfair text-2xl mb-4">{strings.product.description}</h2>
           <article className="prose max-w-none">
             <h3>{strings.product.story}</h3>
-            <p>{product.story}</p>
+            <p>{mapped.story}</p>
             <h3>{strings.product.material}</h3>
-            <p>{product.material}</p>
+            <p>{mapped.material}</p>
             <h3>{strings.product.care}</h3>
-            <p>{product.care}</p>
+            <p>{mapped.care}</p>
           </article>
         </div>
         <div>
@@ -194,7 +266,7 @@ export default function ProductDetail() {
             <iframe
               title="product video"
               className="w-full h-full"
-              src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+              src={youtubeSrc}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
