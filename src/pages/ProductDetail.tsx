@@ -61,6 +61,35 @@ const schema = z
 
 type FormData = z.infer<typeof schema>;
 
+function toYouTubeEmbed(url?: string | null): string {
+  if (!url) return '';
+  try {
+    const u = new URL(url);
+    const host = u.hostname.replace(/^www\./, '');
+    let id = '';
+    if (host === 'youtu.be') {
+      id = u.pathname.slice(1);
+    } else if (host === 'youtube.com' || host === 'm.youtube.com') {
+      if (u.pathname === '/watch') {
+        id = u.searchParams.get('v') || '';
+      } else if (u.pathname.startsWith('/shorts/')) {
+        id = u.pathname.split('/')[2] || '';
+      } else if (u.pathname.startsWith('/embed/')) {
+        return `https://www.youtube-nocookie.com${u.pathname}${u.search}`;
+      }
+    } else if (host === 'youtube-nocookie.com' && u.pathname.startsWith('/embed/')) {
+      return url;
+    }
+    if (!id) return '';
+    const params = new URLSearchParams(u.search);
+    if (!params.has('rel')) params.set('rel', '0');
+    if (!params.has('modestbranding')) params.set('modestbranding', '1');
+    return `https://www.youtube-nocookie.com/embed/${id}?${params.toString()}`;
+  } catch {
+    return '';
+  }
+}
+
 export default function ProductDetail() {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -160,9 +189,7 @@ export default function ProductDetail() {
   const seoTitle = mapped.seoTitle || `${mapped.title} – ${strings.brandName}`;
   const seoDescription = mapped.seoDescription || mapped.teaser;
   const canonicalPath = `/product/${mapped.slug}`;
-  const youtubeSrc = mapped.youtubeUrl && mapped.youtubeUrl.includes("embed")
-    ? mapped.youtubeUrl
-    : (mapped.youtubeUrl ? mapped.youtubeUrl : "https://www.youtube.com/embed/dQw4w9WgXcQ");
+  const youtubeSrc = toYouTubeEmbed(mapped.youtubeUrl) || "https://www.youtube.com/embed/dQw4w9WgXcQ";
 
   return (
     <div className="container py-10">
