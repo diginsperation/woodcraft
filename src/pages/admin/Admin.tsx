@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -26,7 +27,22 @@ export default function Admin() {
 
   // Forms
   const [catForm, setCatForm] = useState<{ id?: string; name: string; slug?: string; description?: string; sort_order: number }>({ name: "", description: "", sort_order: 0 });
-  const [prodForm, setProdForm] = useState<any>({ id: undefined, title: "", slug: "", category_id: "", description: "", base_price: 0, active: true, youtube_url: "" });
+const [prodForm, setProdForm] = useState<any>({
+  id: undefined,
+  title: "",
+  slug: "",
+  category_id: "",
+  description: "",
+  base_price: 0,
+  active: true,
+  youtube_url: "",
+  seo_title: "",
+  seo_description: "",
+  details_story: "",
+  details_material: "",
+  details_care: "",
+  details_imagesText: "",
+});
 
   useEffect(() => {
     const sub = supabase.auth.onAuthStateChange((_evt, sess) => {
@@ -54,7 +70,7 @@ export default function Admin() {
   const loadCatalog = async () => {
     const [{ data: cats }, { data: prods }] = await Promise.all([
       supabase.from("categories").select("id, name, slug, description, sort_order").order("sort_order", { ascending: true }),
-      supabase.from("products").select("id, title, slug, category_id, description, base_price, active, youtube_url").order("created_at", { ascending: false }),
+      supabase.from("products").select("id, title, slug, category_id, description, base_price, active, youtube_url, seo_title, seo_description, details").order("created_at", { ascending: false }),
     ]);
     setCategories(cats ?? []);
     setProducts(prods ?? []);
@@ -103,6 +119,12 @@ export default function Admin() {
   // Product CRUD
   const saveProduct = async () => {
     if (!isEditor) return;
+    // normalize images list from textarea
+    const images = String(prodForm.details_imagesText || "")
+      .split("\n")
+      .map((s: string) => s.trim())
+      .filter((s: string) => s.length > 0);
+
     const payload: any = {
       title: prodForm.title,
       description: prodForm.description,
@@ -110,26 +132,59 @@ export default function Admin() {
       active: !!prodForm.active,
       youtube_url: prodForm.youtube_url || null,
       category_id: prodForm.category_id,
+      seo_title: prodForm.seo_title || null,
+      seo_description: prodForm.seo_description || null,
+      details: {
+        story: prodForm.details_story || "",
+        material: prodForm.details_material || "",
+        care: prodForm.details_care || "",
+        images,
+      },
     };
     if (prodForm.slug) payload.slug = prodForm.slug;
     const { error } = prodForm.id
       ? await supabase.from("products").update(payload).eq("id", prodForm.id)
       : await supabase.from("products").insert(payload);
     if (error) return toast.error(error.message);
-    setProdForm({ id: undefined, title: "", slug: "", category_id: "", description: "", base_price: 0, active: true, youtube_url: "" });
+    setProdForm({
+      id: undefined,
+      title: "",
+      slug: "",
+      category_id: "",
+      description: "",
+      base_price: 0,
+      active: true,
+      youtube_url: "",
+      seo_title: "",
+      seo_description: "",
+      details_story: "",
+      details_material: "",
+      details_care: "",
+      details_imagesText: "",
+    });
     await loadCatalog();
     toast.success("Produkt gespeichert");
   };
-  const editProduct = (p: any) => setProdForm({
-    id: p.id,
-    title: p.title,
-    slug: p.slug,
-    category_id: p.category_id,
-    description: p.description,
-    base_price: p.base_price,
-    active: p.active,
-    youtube_url: p.youtube_url ?? "",
-  });
+  const editProduct = (p: any) => {
+    const details = (p.details as any) || {};
+    const imagesText = Array.isArray(details.images) ? details.images.join("\n") : "";
+    setProdForm({
+      id: p.id,
+      title: p.title,
+      slug: p.slug,
+      category_id: p.category_id,
+      description: p.description ?? "",
+      base_price: p.base_price,
+      active: p.active,
+      youtube_url: p.youtube_url ?? "",
+      seo_title: p.seo_title ?? "",
+      seo_description: p.seo_description ?? "",
+      details_story: details.story ?? "",
+      details_material: details.material ?? "",
+      details_care: details.care ?? "",
+      details_imagesText: imagesText,
+    });
+  };
   const deleteProduct = async (id: string) => {
     if (!isEditor) return;
     const { error } = await supabase.from("products").delete().eq("id", id);
@@ -271,12 +326,40 @@ export default function Admin() {
                   <Input type="number" step="0.01" value={prodForm.base_price} onChange={(e) => setProdForm({ ...prodForm, base_price: e.target.value })} />
                 </div>
                 <div>
-                  <Label>Beschreibung</Label>
-                  <Input value={prodForm.description} onChange={(e) => setProdForm({ ...prodForm, description: e.target.value })} />
+                  <Label>Beschreibung (Teaser)</Label>
+                  <Textarea value={prodForm.description} onChange={(e) => setProdForm({ ...prodForm, description: e.target.value })} />
+                </div>
+                <Separator className="my-2" />
+                <h3 className="font-medium">SEO</h3>
+                <div>
+                  <Label>SEO Titel</Label>
+                  <Input value={prodForm.seo_title} onChange={(e) => setProdForm({ ...prodForm, seo_title: e.target.value })} />
+                </div>
+                <div>
+                  <Label>SEO Beschreibung</Label>
+                  <Textarea value={prodForm.seo_description} onChange={(e) => setProdForm({ ...prodForm, seo_description: e.target.value })} />
+                </div>
+                <Separator className="my-2" />
+                <h3 className="font-medium">Details</h3>
+                <div>
+                  <Label>Story</Label>
+                  <Textarea value={prodForm.details_story} onChange={(e) => setProdForm({ ...prodForm, details_story: e.target.value })} />
+                </div>
+                <div>
+                  <Label>Material</Label>
+                  <Textarea value={prodForm.details_material} onChange={(e) => setProdForm({ ...prodForm, details_material: e.target.value })} />
+                </div>
+                <div>
+                  <Label>Pflege</Label>
+                  <Textarea value={prodForm.details_care} onChange={(e) => setProdForm({ ...prodForm, details_care: e.target.value })} />
+                </div>
+                <div>
+                  <Label>Bilder (eine URL pro Zeile)</Label>
+                  <Textarea placeholder="https://...jpg" value={prodForm.details_imagesText} onChange={(e) => setProdForm({ ...prodForm, details_imagesText: e.target.value })} />
                 </div>
                 <div>
                   <Label>YouTube URL</Label>
-                  <Input value={prodForm.youtube_url} onChange={(e) => setProdForm({ ...prodForm, youtube_url: e.target.value })} />
+                  <Input placeholder="https://www.youtube.com/embed/..." value={prodForm.youtube_url} onChange={(e) => setProdForm({ ...prodForm, youtube_url: e.target.value })} />
                 </div>
                 <div className="flex items-center gap-2">
                   <input id="active" type="checkbox" checked={!!prodForm.active} onChange={(e) => setProdForm({ ...prodForm, active: e.target.checked })} />
