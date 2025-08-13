@@ -13,6 +13,7 @@ import Layout from "./components/layout/Layout";
 import AGB from "./pages/AGB";
 import Datenschutz from "./pages/Datenschutz";
 import Widerruf from "./pages/Widerruf";
+import Impressum from "./pages/Impressum";
 import Admin from "./pages/admin/Admin";
 
 
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/agb" element={<AGB />} />
             <Route path="/datenschutz" element={<Datenschutz />} />
             <Route path="/widerruf" element={<Widerruf />} />
+            <Route path="/impressum" element={<Impressum />} />
             <Route path="/admin" element={<Admin />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
