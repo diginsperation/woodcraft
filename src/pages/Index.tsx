@@ -19,8 +19,8 @@ const Index = () => {
     // fetch categories
     supabase.from("categories").select("slug,name,description,sort_order").order("sort_order", { ascending: true })
       .then(({ data }) => setDbCategories(data ?? []));
-    // fetch latest active products
-    supabase.from("products").select("id,slug,title,description,base_price,created_at,active").eq("active", true).order("created_at", { ascending: false }).limit(6)
+    // fetch featured products for bestsellers section
+    supabase.from("products").select("id,slug,title,description,base_price,created_at,active,is_home_featured").eq("active", true).eq("is_home_featured", true).order("created_at", { ascending: false }).limit(6)
       .then(({ data }) => setDbProducts(data ?? []));
     // check if current user is admin (for empty states)
     supabase.auth.getUser().then(async ({ data }) => {

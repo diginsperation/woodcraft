@@ -35,6 +35,7 @@ const [prodForm, setProdForm] = useState<any>({
   description: "",
   base_price: 0,
   active: true,
+  is_home_featured: false,
   youtube_url: "",
   seo_title: "",
   seo_description: "",
@@ -70,7 +71,7 @@ const [prodForm, setProdForm] = useState<any>({
   const loadCatalog = async () => {
     const [{ data: cats }, { data: prods }] = await Promise.all([
       supabase.from("categories").select("id, name, slug, description, sort_order").order("sort_order", { ascending: true }),
-      supabase.from("products").select("id, title, slug, category_id, description, base_price, active, youtube_url, seo_title, seo_description, details").order("created_at", { ascending: false }),
+      supabase.from("products").select("id, title, slug, category_id, description, base_price, active, youtube_url, seo_title, seo_description, details, is_home_featured").order("created_at", { ascending: false }),
     ]);
     setCategories(cats ?? []);
     setProducts(prods ?? []);
@@ -130,6 +131,7 @@ const [prodForm, setProdForm] = useState<any>({
       description: prodForm.description,
       base_price: Number(prodForm.base_price) || 0,
       active: !!prodForm.active,
+      is_home_featured: !!prodForm.is_home_featured,
       youtube_url: prodForm.youtube_url || null,
       category_id: prodForm.category_id,
       seo_title: prodForm.seo_title || null,
@@ -154,6 +156,7 @@ const [prodForm, setProdForm] = useState<any>({
       description: "",
       base_price: 0,
       active: true,
+      is_home_featured: false,
       youtube_url: "",
       seo_title: "",
       seo_description: "",
@@ -176,6 +179,7 @@ const [prodForm, setProdForm] = useState<any>({
       description: p.description ?? "",
       base_price: p.base_price,
       active: p.active,
+      is_home_featured: p.is_home_featured ?? false,
       youtube_url: p.youtube_url ?? "",
       seo_title: p.seo_title ?? "",
       seo_description: p.seo_description ?? "",
@@ -364,6 +368,10 @@ const [prodForm, setProdForm] = useState<any>({
                 <div className="flex items-center gap-2">
                   <input id="active" type="checkbox" checked={!!prodForm.active} onChange={(e) => setProdForm({ ...prodForm, active: e.target.checked })} />
                   <Label htmlFor="active">Aktiv</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input id="is_home_featured" type="checkbox" checked={!!prodForm.is_home_featured} onChange={(e) => setProdForm({ ...prodForm, is_home_featured: e.target.checked })} />
+                  <Label htmlFor="is_home_featured">Als Bestseller auf Startseite anzeigen</Label>
                 </div>
                 <Button onClick={saveProduct} disabled={!isEditor || !prodForm.category_id}>Speichern</Button>
               </CardContent>
