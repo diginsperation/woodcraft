@@ -25,6 +25,20 @@ export default function Admin() {
   const [categories, setCategories] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
 
+  // Homepage state
+  const [headerData, setHeaderData] = useState<any>(null);
+  const [heroData, setHeroData] = useState<any>(null);
+  const [headerForm, setHeaderForm] = useState<any>({ logo_text: "", logo_image_url: "" });
+  const [heroForm, setHeroForm] = useState<any>({
+    title: "",
+    subtitle: "",
+    button_primary_label: "",
+    button_primary_link: "",
+    button_secondary_label: "",
+    button_secondary_link: "",
+    background_image_url: ""
+  });
+
   // Forms
   const [catForm, setCatForm] = useState<{ id?: string; name: string; slug?: string; description?: string; sort_order: number }>({ name: "", description: "", sort_order: 0 });
 const [prodForm, setProdForm] = useState<any>({
@@ -65,6 +79,7 @@ const [prodForm, setProdForm] = useState<any>({
     });
 
     loadCatalog();
+    loadHomepageData();
     return () => sub.unsubscribe();
   }, []);
 
@@ -75,6 +90,29 @@ const [prodForm, setProdForm] = useState<any>({
     ]);
     setCategories(cats ?? []);
     setProducts(prods ?? []);
+  };
+
+  const loadHomepageData = async () => {
+    const [{ data: header }, { data: hero }] = await Promise.all([
+      supabase.from("homepage_header").select("*").eq("is_active", true).maybeSingle(),
+      supabase.from("homepage_hero").select("*").eq("is_active", true).maybeSingle(),
+    ]);
+    setHeaderData(header);
+    setHeroData(hero);
+    if (header) {
+      setHeaderForm({ logo_text: header.logo_text || "", logo_image_url: header.logo_image_url || "" });
+    }
+    if (hero) {
+      setHeroForm({
+        title: hero.title || "",
+        subtitle: hero.subtitle || "",
+        button_primary_label: hero.button_primary_label || "",
+        button_primary_link: hero.button_primary_link || "",
+        button_secondary_label: hero.button_secondary_label || "",
+        button_secondary_link: hero.button_secondary_link || "",
+        background_image_url: hero.background_image_url || ""
+      });
+    }
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -197,6 +235,42 @@ const [prodForm, setProdForm] = useState<any>({
     toast.success("Produkt gelöscht");
   };
 
+  // Homepage CRUD
+  const saveHeader = async () => {
+    if (!isEditor) return;
+    const payload = {
+      logo_text: headerForm.logo_text || null,
+      logo_image_url: headerForm.logo_image_url || null,
+      is_active: true
+    };
+    const { error } = headerData?.id
+      ? await supabase.from("homepage_header").update(payload).eq("id", headerData.id)
+      : await supabase.from("homepage_header").insert(payload);
+    if (error) return toast.error(error.message);
+    await loadHomepageData();
+    toast.success("Header gespeichert");
+  };
+
+  const saveHero = async () => {
+    if (!isEditor) return;
+    const payload = {
+      title: heroForm.title || null,
+      subtitle: heroForm.subtitle || null,
+      button_primary_label: heroForm.button_primary_label || null,
+      button_primary_link: heroForm.button_primary_link || null,
+      button_secondary_label: heroForm.button_secondary_label || null,
+      button_secondary_link: heroForm.button_secondary_link || null,
+      background_image_url: heroForm.background_image_url || null,
+      is_active: true
+    };
+    const { error } = heroData?.id
+      ? await supabase.from("homepage_hero").update(payload).eq("id", heroData.id)
+      : await supabase.from("homepage_hero").insert(payload);
+    if (error) return toast.error(error.message);
+    await loadHomepageData();
+    toast.success("Hero-Bereich gespeichert");
+  };
+
   // Users: create with edge function (requires service role secret)
   const [newUser, setNewUser] = useState({ displayName: "", email: "", role: "editor" as AppRole });
   const [createdCreds, setCreatedCreds] = useState<{ email: string; tempPassword: string; loginUrl: string } | null>(null);
@@ -249,12 +323,111 @@ const [prodForm, setProdForm] = useState<any>({
         </div>
       </div>
 
-      <Tabs defaultValue="categories">
+      <Tabs defaultValue="homepage">
         <TabsList>
+          <TabsTrigger value="homepage">Startseite</TabsTrigger>
           <TabsTrigger value="categories">Kategorien</TabsTrigger>
           <TabsTrigger value="products">Produkte</TabsTrigger>
           <TabsTrigger value="users" disabled={!canManageUsers}>Benutzer</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="homepage" className="mt-6">
+          <div className="space-y-8">
+            <Card>
+              <CardContent className="pt-6">
+                <h2 className="font-medium mb-4">Header bearbeiten</h2>
+                <div className="space-y-3">
+                  <div>
+                    <Label>Logo-Text</Label>
+                    <Input 
+                      value={headerForm.logo_text} 
+                      onChange={(e) => setHeaderForm({ ...headerForm, logo_text: e.target.value })} 
+                      placeholder="z.B. Holzmanufaktur"
+                    />
+                  </div>
+                  <div>
+                    <Label>Logo-Bild URL</Label>
+                    <Input 
+                      value={headerForm.logo_image_url} 
+                      onChange={(e) => setHeaderForm({ ...headerForm, logo_image_url: e.target.value })} 
+                      placeholder="https://..."
+                    />
+                  </div>
+                  <Button onClick={saveHeader} disabled={!isEditor}>Header speichern</Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="pt-6">
+                <h2 className="font-medium mb-4">Hero-Bereich bearbeiten</h2>
+                <div className="space-y-3">
+                  <div>
+                    <Label>Titel</Label>
+                    <Input 
+                      value={heroForm.title} 
+                      onChange={(e) => setHeroForm({ ...heroForm, title: e.target.value })} 
+                      placeholder="z.B. Holzhandwerk mit Charakter"
+                    />
+                  </div>
+                  <div>
+                    <Label>Untertitel</Label>
+                    <Input 
+                      value={heroForm.subtitle} 
+                      onChange={(e) => setHeroForm({ ...heroForm, subtitle: e.target.value })} 
+                      placeholder="z.B. Personalisiert. Hochwertig. Handgemacht."
+                    />
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-3">
+                    <div>
+                      <Label>Hauptbutton Text</Label>
+                      <Input 
+                        value={heroForm.button_primary_label} 
+                        onChange={(e) => setHeroForm({ ...heroForm, button_primary_label: e.target.value })} 
+                        placeholder="z.B. Jetzt entdecken"
+                      />
+                    </div>
+                    <div>
+                      <Label>Hauptbutton Link</Label>
+                      <Input 
+                        value={heroForm.button_primary_link} 
+                        onChange={(e) => setHeroForm({ ...heroForm, button_primary_link: e.target.value })} 
+                        placeholder="/products"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-3">
+                    <div>
+                      <Label>Zweitbutton Text</Label>
+                      <Input 
+                        value={heroForm.button_secondary_label} 
+                        onChange={(e) => setHeroForm({ ...heroForm, button_secondary_label: e.target.value })} 
+                        placeholder="z.B. Mehr erfahren"
+                      />
+                    </div>
+                    <div>
+                      <Label>Zweitbutton Link</Label>
+                      <Input 
+                        value={heroForm.button_secondary_link} 
+                        onChange={(e) => setHeroForm({ ...heroForm, button_secondary_link: e.target.value })} 
+                        placeholder="#process"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Hintergrundbild URL</Label>
+                    <Input 
+                      value={heroForm.background_image_url} 
+                      onChange={(e) => setHeroForm({ ...heroForm, background_image_url: e.target.value })} 
+                      placeholder="https://..."
+                    />
+                  </div>
+                  <Button onClick={saveHero} disabled={!isEditor}>Hero-Bereich speichern</Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
 
         <TabsContent value="categories" className="mt-6">
           <div className="grid md:grid-cols-2 gap-6">

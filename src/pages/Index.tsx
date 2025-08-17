@@ -14,6 +14,7 @@ const Index = () => {
   const [dbCategories, setDbCategories] = useState<any[]>([]);
   const [dbProducts, setDbProducts] = useState<any[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [heroData, setHeroData] = useState<any>(null);
 
   useEffect(() => {
     // fetch categories
@@ -22,6 +23,9 @@ const Index = () => {
     // fetch featured products for bestsellers section
     supabase.from("products").select("id,slug,title,description,base_price,created_at,active,is_home_featured").eq("active", true).eq("is_home_featured", true).order("created_at", { ascending: false }).limit(6)
       .then(({ data }) => setDbProducts(data ?? []));
+    // fetch hero data
+    supabase.from("homepage_hero").select("*").eq("is_active", true).maybeSingle()
+      .then(({ data }) => setHeroData(data));
     // check if current user is admin (for empty states)
     supabase.auth.getUser().then(async ({ data }) => {
       const uid = data.user?.id;
@@ -61,8 +65,8 @@ const Index = () => {
       <header className="relative">
         <div className="h-[420px] md:h-[520px] w-full overflow-hidden rounded-b-lg">
           <img
-            src={heroImage}
-            alt={strings.hero.alt}
+            src={heroData?.background_image_url || heroImage}
+            alt={heroData?.title || strings.hero.alt}
             className="h-full w-full object-cover"
             loading="eager"
           />
@@ -70,17 +74,21 @@ const Index = () => {
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center max-w-3xl px-6">
             <h1 className="font-playfair text-4xl md:text-6xl font-semibold text-primary-foreground drop-shadow-[0_10px_30px_rgba(0,0,0,0.3)]">
-              {strings.hero.title}
+              {heroData?.title || strings.hero.title}
             </h1>
             <p className="mt-4 text-lg md:text-xl text-primary-foreground/90">
-              {strings.hero.subtitle}
+              {heroData?.subtitle || strings.hero.subtitle}
             </p>
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
               <Button asChild>
-                <Link to="/products">{strings.hero.cta}</Link>
+                <Link to={heroData?.button_primary_link || "/products"}>
+                  {heroData?.button_primary_label || strings.hero.cta}
+                </Link>
               </Button>
               <Button variant="outline" asChild>
-                <a href="#process">{strings.home.processCta}</a>
+                <a href={heroData?.button_secondary_link || "#process"}>
+                  {heroData?.button_secondary_label || strings.home.processCta}
+                </a>
               </Button>
             </div>
           </div>

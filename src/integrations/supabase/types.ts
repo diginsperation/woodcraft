@@ -44,6 +44,75 @@ export type Database = {
         }
         Relationships: []
       }
+      homepage_header: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean | null
+          logo_image_url: string | null
+          logo_text: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          logo_image_url?: string | null
+          logo_text?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          logo_image_url?: string | null
+          logo_text?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      homepage_hero: {
+        Row: {
+          background_image_url: string | null
+          button_primary_label: string | null
+          button_primary_link: string | null
+          button_secondary_label: string | null
+          button_secondary_link: string | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          subtitle: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          background_image_url?: string | null
+          button_primary_label?: string | null
+          button_primary_link?: string | null
+          button_secondary_label?: string | null
+          button_secondary_link?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          subtitle?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          background_image_url?: string | null
+          button_primary_label?: string | null
+          button_primary_link?: string | null
+          button_secondary_label?: string | null
+          button_secondary_link?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          subtitle?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           active: boolean
