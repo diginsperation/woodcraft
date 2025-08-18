@@ -44,6 +44,78 @@ export type Database = {
         }
         Relationships: []
       }
+      contact_actions: {
+        Row: {
+          id: string
+          is_enabled: boolean
+          label: string
+          sort_order: number
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          id?: string
+          is_enabled?: boolean
+          label: string
+          sort_order?: number
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          id?: string
+          is_enabled?: boolean
+          label?: string
+          sort_order?: number
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      footer_contact_block: {
+        Row: {
+          content_rich: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          content_rich?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          content_rich?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      home_process: {
+        Row: {
+          button_label: string | null
+          button_link: string | null
+          id: string
+          subtitle: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          button_label?: string | null
+          button_link?: string | null
+          id?: string
+          subtitle?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          button_label?: string | null
+          button_link?: string | null
+          id?: string
+          subtitle?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       homepage_header: {
         Row: {
           created_at: string
@@ -196,6 +268,39 @@ export type Database = {
           id?: string
           must_change_password?: boolean
           updated_at?: string
+        }
+        Relationships: []
+      }
+      social_links: {
+        Row: {
+          icon: string
+          id: string
+          is_enabled: boolean
+          label: string
+          platform: string
+          sort_order: number
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          icon: string
+          id?: string
+          is_enabled?: boolean
+          label: string
+          platform: string
+          sort_order?: number
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          icon?: string
+          id?: string
+          is_enabled?: boolean
+          label?: string
+          platform?: string
+          sort_order?: number
+          updated_at?: string
+          url?: string
         }
         Relationships: []
       }

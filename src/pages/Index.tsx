@@ -15,6 +15,8 @@ const Index = () => {
   const [dbProducts, setDbProducts] = useState<any[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [heroData, setHeroData] = useState<any>(null);
+  const [processData, setProcessData] = useState<any>(null);
+  const [contactActions, setContactActions] = useState<any[]>([]);
 
   useEffect(() => {
     // fetch categories
@@ -26,6 +28,12 @@ const Index = () => {
     // fetch hero data
     supabase.from("homepage_hero").select("*").eq("is_active", true).maybeSingle()
       .then(({ data }) => setHeroData(data));
+    // fetch process data
+    supabase.from("home_process").select("*").maybeSingle()
+      .then(({ data }) => setProcessData(data));
+    // fetch contact actions
+    supabase.from("contact_actions").select("*").eq("is_enabled", true).order("sort_order")
+      .then(({ data }) => setContactActions(data ?? []));
     // check if current user is admin (for empty states)
     supabase.auth.getUser().then(async ({ data }) => {
       const uid = data.user?.id;
@@ -118,32 +126,57 @@ const Index = () => {
           </div>
         </section>
 
-        <section className="container py-12 md:py-16" aria-labelledby="process">
-          <div className="grid md:grid-cols-2 gap-8 items-center">
-            <div>
-              <h2 id="process" className="font-playfair text-3xl md:text-4xl mb-4">
-                {strings.home.processTitle}
-              </h2>
-              <p className="text-muted-foreground mb-4">{strings.home.processText}</p>
-              <Button variant="outline" asChild>
-                <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noreferrer">
-                  {strings.home.watchVideo}
-                </a>
-              </Button>
+        {(processData || true) && (
+          <section className="container py-12 md:py-16" aria-labelledby="process">
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div>
+                <h2 id="process" className="font-playfair text-3xl md:text-4xl mb-4">
+                  {processData?.title || strings.home.processTitle}
+                </h2>
+                <p className="text-muted-foreground mb-4">
+                  {processData?.subtitle || strings.home.processText}
+                </p>
+                <Button variant="outline" asChild>
+                  <a 
+                    href={processData?.button_link || "https://www.youtube.com/watch?v=dQw4w9WgXcQ"} 
+                    target="_blank" 
+                    rel="noreferrer"
+                  >
+                    {processData?.button_label || strings.home.watchVideo}
+                  </a>
+                </Button>
+              </div>
+              <div className="rounded-lg bg-accent aspect-video" aria-hidden />
             </div>
-            <div className="rounded-lg bg-accent aspect-video" aria-hidden />
-          </div>
-        </section>
+          </section>
+        )}
 
         <section className="container py-12 md:py-16" aria-labelledby="contact-icons">
           <h2 id="contact-icons" className="font-playfair text-3xl md:text-4xl mb-6">
             {strings.home.contact}
           </h2>
           <div className="flex flex-wrap gap-4">
-            <a className="hover-scale rounded-md border px-4 py-2" href="#" aria-label="Email">Email</a>
-            <a className="hover-scale rounded-md border px-4 py-2" href="#" aria-label="WhatsApp">WhatsApp</a>
-            <a className="hover-scale rounded-md border px-4 py-2" href="#" aria-label="Instagram">Instagram</a>
-            <a className="hover-scale rounded-md border px-4 py-2" href="#" aria-label="Messenger">Messenger</a>
+            {contactActions.length > 0 ? (
+              contactActions.map((contact) => (
+                <a 
+                  key={contact.id}
+                  className="hover-scale rounded-md border px-4 py-2" 
+                  href={contact.url} 
+                  aria-label={contact.label}
+                  target={contact.url.startsWith('http') ? '_blank' : undefined}
+                  rel={contact.url.startsWith('http') ? 'noreferrer' : undefined}
+                >
+                  {contact.label}
+                </a>
+              ))
+            ) : (
+              <>
+                <a className="hover-scale rounded-md border px-4 py-2" href="#" aria-label="Email">Email</a>
+                <a className="hover-scale rounded-md border px-4 py-2" href="#" aria-label="WhatsApp">WhatsApp</a>
+                <a className="hover-scale rounded-md border px-4 py-2" href="#" aria-label="Instagram">Instagram</a>
+                <a className="hover-scale rounded-md border px-4 py-2" href="#" aria-label="Messenger">Messenger</a>
+              </>
+            )}
           </div>
         </section>
       </main>

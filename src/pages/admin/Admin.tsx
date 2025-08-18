@@ -28,6 +28,11 @@ export default function Admin() {
   // Homepage state
   const [headerData, setHeaderData] = useState<any>(null);
   const [heroData, setHeroData] = useState<any>(null);
+  const [processData, setProcessData] = useState<any>(null);
+  const [contactActions, setContactActions] = useState<any[]>([]);
+  const [socialLinks, setSocialLinks] = useState<any[]>([]);
+  const [footerContactData, setFooterContactData] = useState<any>(null);
+  
   const [headerForm, setHeaderForm] = useState<any>({ logo_text: "", logo_image_url: "" });
   const [heroForm, setHeroForm] = useState<any>({
     title: "",
@@ -38,6 +43,25 @@ export default function Admin() {
     button_secondary_link: "",
     background_image_url: ""
   });
+  const [processForm, setProcessForm] = useState<any>({
+    title: "",
+    subtitle: "",
+    button_label: "",
+    button_link: ""
+  });
+  const [contactForm, setContactForm] = useState<any>({
+    label: "",
+    url: "",
+    sort_order: 0
+  });
+  const [socialForm, setSocialForm] = useState<any>({
+    platform: "",
+    label: "",
+    url: "",
+    icon: "",
+    sort_order: 0
+  });
+  const [footerContactForm, setFooterContactForm] = useState<any>({ content_rich: "" });
 
   // Forms
   const [catForm, setCatForm] = useState<{ id?: string; name: string; slug?: string; description?: string; sort_order: number }>({ name: "", description: "", sort_order: 0 });
@@ -93,12 +117,21 @@ const [prodForm, setProdForm] = useState<any>({
   };
 
   const loadHomepageData = async () => {
-    const [{ data: header }, { data: hero }] = await Promise.all([
+    const [{ data: header }, { data: hero }, { data: process }, { data: contacts }, { data: socials }, { data: footerContact }] = await Promise.all([
       supabase.from("homepage_header").select("*").eq("is_active", true).maybeSingle(),
       supabase.from("homepage_hero").select("*").eq("is_active", true).maybeSingle(),
+      supabase.from("home_process").select("*").maybeSingle(),
+      supabase.from("contact_actions").select("*").eq("is_enabled", true).order("sort_order"),
+      supabase.from("social_links").select("*").eq("is_enabled", true).order("sort_order"),
+      supabase.from("footer_contact_block").select("*").maybeSingle(),
     ]);
     setHeaderData(header);
     setHeroData(hero);
+    setProcessData(process);
+    setContactActions(contacts || []);
+    setSocialLinks(socials || []);
+    setFooterContactData(footerContact);
+    
     if (header) {
       setHeaderForm({ logo_text: header.logo_text || "", logo_image_url: header.logo_image_url || "" });
     }
@@ -112,6 +145,17 @@ const [prodForm, setProdForm] = useState<any>({
         button_secondary_link: hero.button_secondary_link || "",
         background_image_url: hero.background_image_url || ""
       });
+    }
+    if (process) {
+      setProcessForm({
+        title: process.title || "",
+        subtitle: process.subtitle || "",
+        button_label: process.button_label || "",
+        button_link: process.button_link || ""
+      });
+    }
+    if (footerContact) {
+      setFooterContactForm({ content_rich: footerContact.content_rich || "" });
     }
   };
 
@@ -271,6 +315,97 @@ const [prodForm, setProdForm] = useState<any>({
     toast.success("Hero-Bereich gespeichert");
   };
 
+  const saveProcess = async () => {
+    if (!isEditor) return;
+    const payload = {
+      title: processForm.title || null,
+      subtitle: processForm.subtitle || null,
+      button_label: processForm.button_label || null,
+      button_link: processForm.button_link || null
+    };
+    const { error } = processData?.id
+      ? await supabase.from("home_process").update(payload).eq("id", processData.id)
+      : await supabase.from("home_process").insert(payload);
+    if (error) return toast.error(error.message);
+    await loadHomepageData();
+    toast.success("Prozess-Bereich gespeichert");
+  };
+
+  const saveContactAction = async () => {
+    if (!isEditor || !contactForm.label || !contactForm.url) return;
+    const payload = {
+      label: contactForm.label,
+      url: contactForm.url,
+      sort_order: contactForm.sort_order || 0,
+      is_enabled: true
+    };
+    const { error } = await supabase.from("contact_actions").insert(payload);
+    if (error) return toast.error(error.message);
+    setContactForm({ label: "", url: "", sort_order: 0 });
+    await loadHomepageData();
+    toast.success("Kontakt-Chip hinzugefügt");
+  };
+
+  const updateContactAction = async (id: string, enabled: boolean) => {
+    if (!isEditor) return;
+    const { error } = await supabase.from("contact_actions").update({ is_enabled: enabled }).eq("id", id);
+    if (error) return toast.error(error.message);
+    await loadHomepageData();
+  };
+
+  const deleteContactAction = async (id: string) => {
+    if (!isEditor) return;
+    const { error } = await supabase.from("contact_actions").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    await loadHomepageData();
+    toast.success("Kontakt-Chip gelöscht");
+  };
+
+  const saveSocialLink = async () => {
+    if (!isEditor || !socialForm.platform || !socialForm.url) return;
+    const payload = {
+      platform: socialForm.platform,
+      label: socialForm.label || socialForm.platform,
+      url: socialForm.url,
+      icon: socialForm.icon || "link",
+      sort_order: socialForm.sort_order || 0,
+      is_enabled: true
+    };
+    const { error } = await supabase.from("social_links").insert(payload);
+    if (error) return toast.error(error.message);
+    setSocialForm({ platform: "", label: "", url: "", icon: "", sort_order: 0 });
+    await loadHomepageData();
+    toast.success("Social-Link hinzugefügt");
+  };
+
+  const updateSocialLink = async (id: string, enabled: boolean) => {
+    if (!isEditor) return;
+    const { error } = await supabase.from("social_links").update({ is_enabled: enabled }).eq("id", id);
+    if (error) return toast.error(error.message);
+    await loadHomepageData();
+  };
+
+  const deleteSocialLink = async (id: string) => {
+    if (!isEditor) return;
+    const { error } = await supabase.from("social_links").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    await loadHomepageData();
+    toast.success("Social-Link gelöscht");
+  };
+
+  const saveFooterContact = async () => {
+    if (!isEditor) return;
+    const payload = {
+      content_rich: footerContactForm.content_rich || null
+    };
+    const { error } = footerContactData?.id
+      ? await supabase.from("footer_contact_block").update(payload).eq("id", footerContactData.id)
+      : await supabase.from("footer_contact_block").insert(payload);
+    if (error) return toast.error(error.message);
+    await loadHomepageData();
+    toast.success("Footer-Kontakt gespeichert");
+  };
+
   // Users: create with edge function (requires service role secret)
   const [newUser, setNewUser] = useState({ displayName: "", email: "", role: "editor" as AppRole });
   const [createdCreds, setCreatedCreds] = useState<{ email: string; tempPassword: string; loginUrl: string } | null>(null);
@@ -422,12 +557,226 @@ const [prodForm, setProdForm] = useState<any>({
                       placeholder="https://..."
                     />
                   </div>
-                  <Button onClick={saveHero} disabled={!isEditor}>Hero-Bereich speichern</Button>
+                <Button onClick={saveHero} disabled={!isEditor}>Hero-Bereich speichern</Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <h2 className="font-medium mb-4">Prozess-Block bearbeiten</h2>
+              <div className="space-y-3">
+                <div>
+                  <Label>Titel</Label>
+                  <Input 
+                    value={processForm.title} 
+                    onChange={(e) => setProcessForm({ ...processForm, title: e.target.value })} 
+                    placeholder="z.B. So entsteht dein Produkt"
+                  />
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
+                <div>
+                  <Label>Subtext</Label>
+                  <Textarea 
+                    value={processForm.subtitle} 
+                    onChange={(e) => setProcessForm({ ...processForm, subtitle: e.target.value })} 
+                    placeholder="z.B. Von der Idee bis zum fertigen Holzprodukt..."
+                  />
+                </div>
+                <div className="grid md:grid-cols-2 gap-3">
+                  <div>
+                    <Label>Button-Text</Label>
+                    <Input 
+                      value={processForm.button_label} 
+                      onChange={(e) => setProcessForm({ ...processForm, button_label: e.target.value })} 
+                      placeholder="z.B. Video ansehen"
+                    />
+                  </div>
+                  <div>
+                    <Label>Button-Link (Video URL)</Label>
+                    <Input 
+                      value={processForm.button_link} 
+                      onChange={(e) => setProcessForm({ ...processForm, button_link: e.target.value })} 
+                      placeholder="https://www.youtube.com/..."
+                    />
+                  </div>
+                </div>
+                <Button onClick={saveProcess} disabled={!isEditor}>Prozess-Block speichern</Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <h2 className="font-medium mb-4">Kontakt-Chips verwalten</h2>
+              <div className="space-y-4">
+                <div className="grid md:grid-cols-3 gap-3">
+                  <div>
+                    <Label>Label</Label>
+                    <Input 
+                      value={contactForm.label} 
+                      onChange={(e) => setContactForm({ ...contactForm, label: e.target.value })} 
+                      placeholder="z.B. Email"
+                    />
+                  </div>
+                  <div>
+                    <Label>URL</Label>
+                    <Input 
+                      value={contactForm.url} 
+                      onChange={(e) => setContactForm({ ...contactForm, url: e.target.value })} 
+                      placeholder="mailto:... oder https://..."
+                    />
+                  </div>
+                  <div>
+                    <Label>Sortierung</Label>
+                    <Input 
+                      type="number"
+                      value={contactForm.sort_order} 
+                      onChange={(e) => setContactForm({ ...contactForm, sort_order: Number(e.target.value) })} 
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+                <Button onClick={saveContactAction} disabled={!isEditor || !contactForm.label || !contactForm.url}>
+                  Kontakt-Chip hinzufügen
+                </Button>
+                <div className="space-y-2">
+                  <h3 className="font-medium">Vorhandene Kontakt-Chips:</h3>
+                  {contactActions.map((contact) => (
+                    <div key={contact.id} className="flex items-center justify-between p-2 border rounded">
+                      <div>
+                        <span className="font-medium">{contact.label}</span>
+                        <span className="text-sm text-muted-foreground ml-2">Sortierung: {contact.sort_order}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          size="sm" 
+                          variant={contact.is_enabled ? "default" : "outline"}
+                          onClick={() => updateContactAction(contact.id, !contact.is_enabled)}
+                          disabled={!isEditor}
+                        >
+                          {contact.is_enabled ? "Aktiv" : "Inaktiv"}
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="destructive" 
+                          onClick={() => deleteContactAction(contact.id)}
+                          disabled={!isEditor}
+                        >
+                          Löschen
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <h2 className="font-medium mb-4">Social-Links verwalten</h2>
+              <div className="space-y-4">
+                <div className="grid md:grid-cols-4 gap-3">
+                  <div>
+                    <Label>Platform</Label>
+                    <Input 
+                      value={socialForm.platform} 
+                      onChange={(e) => setSocialForm({ ...socialForm, platform: e.target.value })} 
+                      placeholder="z.B. instagram"
+                    />
+                  </div>
+                  <div>
+                    <Label>Label</Label>
+                    <Input 
+                      value={socialForm.label} 
+                      onChange={(e) => setSocialForm({ ...socialForm, label: e.target.value })} 
+                      placeholder="z.B. Instagram"
+                    />
+                  </div>
+                  <div>
+                    <Label>URL</Label>
+                    <Input 
+                      value={socialForm.url} 
+                      onChange={(e) => setSocialForm({ ...socialForm, url: e.target.value })} 
+                      placeholder="https://..."
+                    />
+                  </div>
+                  <div>
+                    <Label>Icon</Label>
+                    <select 
+                      className="w-full h-10 rounded-md border bg-background px-3"
+                      value={socialForm.icon} 
+                      onChange={(e) => setSocialForm({ ...socialForm, icon: e.target.value })}
+                    >
+                      <option value="">Wählen...</option>
+                      <option value="mail">Mail</option>
+                      <option value="message-circle">WhatsApp</option>
+                      <option value="instagram">Instagram</option>
+                      <option value="message-square">Messenger</option>
+                      <option value="facebook">Facebook</option>
+                      <option value="twitter">Twitter</option>
+                      <option value="phone">Telefon</option>
+                    </select>
+                  </div>
+                </div>
+                <Button onClick={saveSocialLink} disabled={!isEditor || !socialForm.platform || !socialForm.url}>
+                  Social-Link hinzufügen
+                </Button>
+                <div className="space-y-2">
+                  <h3 className="font-medium">Vorhandene Social-Links:</h3>
+                  {socialLinks.map((social) => (
+                    <div key={social.id} className="flex items-center justify-between p-2 border rounded">
+                      <div>
+                        <span className="font-medium">{social.label} ({social.platform})</span>
+                        <span className="text-sm text-muted-foreground ml-2">Icon: {social.icon}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          size="sm" 
+                          variant={social.is_enabled ? "default" : "outline"}
+                          onClick={() => updateSocialLink(social.id, !social.is_enabled)}
+                          disabled={!isEditor}
+                        >
+                          {social.is_enabled ? "Aktiv" : "Inaktiv"}
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="destructive" 
+                          onClick={() => deleteSocialLink(social.id)}
+                          disabled={!isEditor}
+                        >
+                          Löschen
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <h2 className="font-medium mb-4">Footer-Kontakt bearbeiten</h2>
+              <div className="space-y-3">
+                <div>
+                  <Label>Kontaktinformationen (HTML erlaubt)</Label>
+                  <Textarea 
+                    value={footerContactForm.content_rich} 
+                    onChange={(e) => setFooterContactForm({ ...footerContactForm, content_rich: e.target.value })} 
+                    placeholder="Email: info@example.com<br/>Telefon: +49 123 456 789"
+                    rows={4}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    HTML-Tags wie &lt;br/&gt; für Zeilenumbrüche sind erlaubt.
+                  </p>
+                </div>
+                <Button onClick={saveFooterContact} disabled={!isEditor}>Footer-Kontakt speichern</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </TabsContent>
 
         <TabsContent value="categories" className="mt-6">
           <div className="grid md:grid-cols-2 gap-6">
