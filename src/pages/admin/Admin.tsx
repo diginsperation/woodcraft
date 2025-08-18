@@ -121,8 +121,8 @@ const [prodForm, setProdForm] = useState<any>({
       supabase.from("homepage_header").select("*").eq("is_active", true).maybeSingle(),
       supabase.from("homepage_hero").select("*").eq("is_active", true).maybeSingle(),
       supabase.from("home_process").select("*").maybeSingle(),
-      supabase.from("contact_actions").select("*").eq("is_enabled", true).order("sort_order"),
-      supabase.from("social_links").select("*").eq("is_enabled", true).order("sort_order"),
+      supabase.from("contact_actions").select("*").order("sort_order"),
+      supabase.from("social_links").select("*").order("sort_order"),
       supabase.from("footer_contact_block").select("*").maybeSingle(),
     ]);
     setHeaderData(header);
