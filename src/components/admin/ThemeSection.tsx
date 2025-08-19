@@ -26,17 +26,17 @@ const fontOptions = [
 ];
 
 const defaultButtonSettings = {
-  button_bg: "29 59% 48%",
-  button_text: "0 0% 100%",
-  button_hover: "29 59% 42%",
+  button_bg: "29 59% 48%", // Original primary color from design system
+  button_text: "0 0% 100%", // Original primary-foreground
+  button_hover: "29 59% 44%", // Slightly darker primary for hover
   button_radius: 8,
   font_button: "Inter",
 };
 
 const defaultTypographySettings = {
-  primary_color: "217 91% 60%",
-  text_color: "240 10% 15%",
-  accent_color: "142 71% 45%",
+  primary_color: "29 59% 48%", // Original primary color from design system
+  text_color: "0 0% 12%", // Original foreground color
+  accent_color: "22 52% 89%", // Original accent color from design system
   font_heading: "Playfair Display",
   font_body: "Inter",
 };
