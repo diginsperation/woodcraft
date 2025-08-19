@@ -61,6 +61,8 @@ export default function Admin() {
     icon: "",
     sort_order: 0
   });
+  const [editingContact, setEditingContact] = useState<any>(null);
+  const [editingSocial, setEditingSocial] = useState<any>(null);
   const [footerContactForm, setFooterContactForm] = useState<any>({ content_rich: "" });
 
   // Forms
@@ -339,11 +341,28 @@ const [prodForm, setProdForm] = useState<any>({
       sort_order: contactForm.sort_order || 0,
       is_enabled: true
     };
-    const { error } = await supabase.from("contact_actions").insert(payload);
+    const { error } = editingContact?.id
+      ? await supabase.from("contact_actions").update(payload).eq("id", editingContact.id)
+      : await supabase.from("contact_actions").insert(payload);
     if (error) return toast.error(error.message);
     setContactForm({ label: "", url: "", sort_order: 0 });
+    setEditingContact(null);
     await loadHomepageData();
-    toast.success("Kontakt-Chip hinzugefügt");
+    toast.success(editingContact?.id ? "Kontakt-Chip aktualisiert" : "Kontakt-Chip hinzugefügt");
+  };
+
+  const editContactAction = (contact: any) => {
+    setEditingContact(contact);
+    setContactForm({
+      label: contact.label,
+      url: contact.url,
+      sort_order: contact.sort_order
+    });
+  };
+
+  const cancelEditContact = () => {
+    setEditingContact(null);
+    setContactForm({ label: "", url: "", sort_order: 0 });
   };
 
   const updateContactAction = async (id: string, enabled: boolean) => {
@@ -371,11 +390,30 @@ const [prodForm, setProdForm] = useState<any>({
       sort_order: socialForm.sort_order || 0,
       is_enabled: true
     };
-    const { error } = await supabase.from("social_links").insert(payload);
+    const { error } = editingSocial?.id
+      ? await supabase.from("social_links").update(payload).eq("id", editingSocial.id)
+      : await supabase.from("social_links").insert(payload);
     if (error) return toast.error(error.message);
     setSocialForm({ platform: "", label: "", url: "", icon: "", sort_order: 0 });
+    setEditingSocial(null);
     await loadHomepageData();
-    toast.success("Social-Link hinzugefügt");
+    toast.success(editingSocial?.id ? "Social-Link aktualisiert" : "Social-Link hinzugefügt");
+  };
+
+  const editSocialLink = (social: any) => {
+    setEditingSocial(social);
+    setSocialForm({
+      platform: social.platform,
+      label: social.label,
+      url: social.url,
+      icon: social.icon,
+      sort_order: social.sort_order
+    });
+  };
+
+  const cancelEditSocial = () => {
+    setEditingSocial(null);
+    setSocialForm({ platform: "", label: "", url: "", icon: "", sort_order: 0 });
   };
 
   const updateSocialLink = async (id: string, enabled: boolean) => {
@@ -636,9 +674,16 @@ const [prodForm, setProdForm] = useState<any>({
                     />
                   </div>
                 </div>
-                <Button onClick={saveContactAction} disabled={!isEditor || !contactForm.label || !contactForm.url}>
-                  Kontakt-Chip hinzufügen
-                </Button>
+                <div className="flex gap-2">
+                  <Button onClick={saveContactAction} disabled={!isEditor || !contactForm.label || !contactForm.url}>
+                    {editingContact?.id ? "Kontakt-Chip aktualisieren" : "Kontakt-Chip hinzufügen"}
+                  </Button>
+                  {editingContact && (
+                    <Button variant="outline" onClick={cancelEditContact}>
+                      Abbrechen
+                    </Button>
+                  )}
+                </div>
                 <div className="space-y-2">
                   <h3 className="font-medium">Vorhandene Kontakt-Chips:</h3>
                   {contactActions.map((contact) => (
@@ -648,6 +693,14 @@ const [prodForm, setProdForm] = useState<any>({
                         <span className="text-sm text-muted-foreground ml-2">Sortierung: {contact.sort_order}</span>
                       </div>
                       <div className="flex items-center gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => editContactAction(contact)}
+                          disabled={!isEditor}
+                        >
+                          Bearbeiten
+                        </Button>
                         <Button 
                           size="sm" 
                           variant={contact.is_enabled ? "default" : "outline"}
@@ -719,9 +772,16 @@ const [prodForm, setProdForm] = useState<any>({
                     </select>
                   </div>
                 </div>
-                <Button onClick={saveSocialLink} disabled={!isEditor || !socialForm.platform || !socialForm.url}>
-                  Social-Link hinzufügen
-                </Button>
+                <div className="flex gap-2">
+                  <Button onClick={saveSocialLink} disabled={!isEditor || !socialForm.platform || !socialForm.url}>
+                    {editingSocial?.id ? "Social-Link aktualisieren" : "Social-Link hinzufügen"}
+                  </Button>
+                  {editingSocial && (
+                    <Button variant="outline" onClick={cancelEditSocial}>
+                      Abbrechen
+                    </Button>
+                  )}
+                </div>
                 <div className="space-y-2">
                   <h3 className="font-medium">Vorhandene Social-Links:</h3>
                   {socialLinks.map((social) => (
@@ -731,6 +791,14 @@ const [prodForm, setProdForm] = useState<any>({
                         <span className="text-sm text-muted-foreground ml-2">Icon: {social.icon}</span>
                       </div>
                       <div className="flex items-center gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => editSocialLink(social)}
+                          disabled={!isEditor}
+                        >
+                          Bearbeiten
+                        </Button>
                         <Button 
                           size="sm" 
                           variant={social.is_enabled ? "default" : "outline"}
