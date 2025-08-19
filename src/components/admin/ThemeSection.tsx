@@ -5,7 +5,6 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ColorField } from "./ColorField";
-import { ThemePreview } from "./ThemePreview";
 import { ThemeSettings } from "@/hooks/useThemeSettings";
 import { RotateCcw } from "lucide-react";
 
@@ -26,26 +25,78 @@ const fontOptions = [
   { value: "Source Sans Pro", label: "Source Sans Pro" },
 ];
 
-const defaultTheme = {
-  primary_color: "29 59% 48%",
-  secondary_color: "38 36% 73%",
-  background_color: "0 0% 100%",
-  text_color: "0 0% 12%",
-  accent_color: "22 52% 89%",
+const defaultButtonSettings = {
   button_bg: "29 59% 48%",
   button_text: "0 0% 100%",
   button_hover: "29 59% 42%",
   button_radius: 8,
-  font_heading: "Playfair Display",
-  font_body: "Inter",
   font_button: "Inter",
-  section_padding_top: 80,
-  section_padding_bottom: 80,
 };
+
+// Simple Button Preview Component
+function ButtonPreview({ settings }: { settings: any }) {
+  const buttonStyle = {
+    backgroundColor: `hsl(${settings.button_bg})`,
+    color: `hsl(${settings.button_text})`,
+    borderRadius: `${settings.button_radius}px`,
+    fontFamily: settings.font_button,
+    '--hover-bg': `hsl(${settings.button_hover})`,
+  } as React.CSSProperties;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Button Vorschau</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-3">
+          <button 
+            style={buttonStyle}
+            className="px-4 py-2 rounded transition-colors hover:bg-[var(--hover-bg)]"
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = `hsl(${settings.button_hover})`;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = `hsl(${settings.button_bg})`;
+            }}
+          >
+            Standard Button
+          </button>
+          
+          <button 
+            style={{...buttonStyle, padding: '12px 24px', fontSize: '16px'}}
+            className="rounded transition-colors"
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = `hsl(${settings.button_hover})`;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = `hsl(${settings.button_bg})`;
+            }}
+          >
+            Großer Button
+          </button>
+          
+          <button 
+            style={{...buttonStyle, padding: '6px 12px', fontSize: '14px'}}
+            className="rounded transition-colors"
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = `hsl(${settings.button_hover})`;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = `hsl(${settings.button_bg})`;
+            }}
+          >
+            Kleiner Button
+          </button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export function ThemeSection({ themeSettings, onSave, isEditor }: ThemeSectionProps) {
   const [formData, setFormData] = useState(() => ({
-    ...defaultTheme,
+    ...defaultButtonSettings,
     ...themeSettings,
   }));
 
@@ -60,24 +111,23 @@ export function ThemeSection({ themeSettings, onSave, isEditor }: ThemeSectionPr
 
   const handleReset = () => {
     setFormData({
-      ...defaultTheme,
+      ...defaultButtonSettings,
       ...themeSettings,
     });
   };
 
   const handleResetToDefaults = () => {
-    setFormData(defaultTheme);
+    setFormData(defaultButtonSettings);
   };
 
   return (
     <div className="grid lg:grid-cols-2 gap-6">
-      {/* Left column: Form */}
+      {/* Left column: Button Settings */}
       <div className="space-y-6">
-        {/* Global Colors Section */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              Globale Farben
+              Button Einstellungen
               <Button
                 variant="outline"
                 size="sm"
@@ -91,98 +141,10 @@ export function ThemeSection({ themeSettings, onSave, isEditor }: ThemeSectionPr
           </CardHeader>
           <CardContent className="space-y-4">
             <ColorField
-              label="Primärfarbe"
-              value={formData.primary_color || ""}
-              onChange={(value) => handleChange('primary_color', value)}
-              description="Hauptfarbe für wichtige Elemente und Branding"
-            />
-            <ColorField
-              label="Sekundärfarbe"
-              value={formData.secondary_color || ""}
-              onChange={(value) => handleChange('secondary_color', value)}
-              description="Ergänzende Farbe für Highlights und Akzente"
-            />
-            <ColorField
-              label="Hintergrundfarbe"
-              value={formData.background_color || ""}
-              onChange={(value) => handleChange('background_color', value)}
-              description="Haupthintergrund der Website"
-            />
-            <ColorField
-              label="Akzentfarbe"
-              value={formData.accent_color || ""}
-              onChange={(value) => handleChange('accent_color', value)}
-              description="Für Rahmen, Trennlinien und subtile Hervorhebungen"
-            />
-          </CardContent>
-        </Card>
-
-        {/* Typography Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Typografie & Schriftarten</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <ColorField
-              label="Textfarbe"
-              value={formData.text_color || ""}
-              onChange={(value) => handleChange('text_color', value)}
-              description="Standardfarbe für alle Texte"
-            />
-            
-            <div className="grid grid-cols-1 gap-4">
-              <div>
-                <Label>Überschriften Schrift</Label>
-                <Select
-                  value={formData.font_heading}
-                  onValueChange={(value) => handleChange('font_heading', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Schriftart wählen" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {fontOptions.map((font) => (
-                      <SelectItem key={font.value} value={font.value}>
-                        {font.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label>Fließtext Schrift</Label>
-                <Select
-                  value={formData.font_body}
-                  onValueChange={(value) => handleChange('font_body', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Schriftart wählen" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {fontOptions.map((font) => (
-                      <SelectItem key={font.value} value={font.value}>
-                        {font.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Buttons Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Buttons & Interaktive Elemente</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <ColorField
               label="Button Hintergrund"
               value={formData.button_bg || ""}
               onChange={(value) => handleChange('button_bg', value)}
-              description="Hintergrundfarbe der Primär-Buttons"
+              description="Hintergrundfarbe der Buttons"
             />
             <ColorField
               label="Button Text"
@@ -232,46 +194,12 @@ export function ThemeSection({ themeSettings, onSave, isEditor }: ThemeSectionPr
           </CardContent>
         </Card>
 
-        {/* Layout & Spacing Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Layout & Abstände</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Oberer Bereichsabstand (px)</Label>
-                <Input 
-                  type="number"
-                  value={formData.section_padding_top || 80} 
-                  onChange={(e) => handleChange('section_padding_top', Number(e.target.value))} 
-                  placeholder="80"
-                  min="0"
-                  max="200"
-                />
-              </div>
-              
-              <div>
-                <Label>Unterer Bereichsabstand (px)</Label>
-                <Input 
-                  type="number"
-                  value={formData.section_padding_bottom || 80} 
-                  onChange={(e) => handleChange('section_padding_bottom', Number(e.target.value))} 
-                  placeholder="80"
-                  min="0"
-                  max="200"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Action Buttons */}
         <Card>
           <CardContent className="pt-6">
             <div className="flex justify-between items-center gap-4">
               <Button onClick={handleSave} disabled={!isEditor} className="flex-1">
-                Änderungen Speichern
+                Button Einstellungen Speichern
               </Button>
               <Button onClick={handleReset} variant="outline" className="flex-1">
                 Änderungen Verwerfen
@@ -281,9 +209,9 @@ export function ThemeSection({ themeSettings, onSave, isEditor }: ThemeSectionPr
         </Card>
       </div>
 
-      {/* Right column: Live Preview */}
+      {/* Right column: Button Preview */}
       <div className="lg:sticky lg:top-6">
-        <ThemePreview colors={formData} />
+        <ButtonPreview settings={formData} />
       </div>
     </div>
   );
