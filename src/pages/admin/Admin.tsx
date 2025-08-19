@@ -10,6 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Seo } from "@/components/Seo";
 import { useThemeSettings } from "@/hooks/useThemeSettings";
+import { ColorField } from "@/components/admin/ColorField";
+import { ThemePreview } from "@/components/admin/ThemePreview";
 
 // Admin roles helper
 type AppRole = "admin" | "editor" | "viewer";
@@ -497,6 +499,33 @@ const [prodForm, setProdForm] = useState<any>({
     }
   };
 
+  // Theme form handlers
+  const handleThemeFormChange = (field: string, value: string | number) => {
+    setThemeForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const resetThemeForm = () => {
+    if (themeSettings) {
+      setThemeForm({
+        primary_color: themeSettings.primary_color || "29 59% 48%",
+        secondary_color: themeSettings.secondary_color || "38 36% 73%",
+        background_color: themeSettings.background_color || "0 0% 100%",
+        text_color: themeSettings.text_color || "0 0% 12%",
+        accent_color: themeSettings.accent_color || "22 52% 89%",
+        button_bg: themeSettings.button_bg || "29 59% 48%",
+        button_text: themeSettings.button_text || "0 0% 100%",
+        button_hover: themeSettings.button_hover || "29 59% 42%",
+        button_radius: themeSettings.button_radius || 8,
+        font_heading: themeSettings.font_heading || "Playfair Display",
+        font_body: themeSettings.font_body || "Inter",
+        font_button: themeSettings.font_button || "Inter",
+        section_padding_top: themeSettings.section_padding_top || 80,
+        section_padding_bottom: themeSettings.section_padding_bottom || 80,
+      });
+      toast.success("Änderungen verworfen");
+    }
+  };
+
   // Users: create with edge function (requires service role secret)
   const [newUser, setNewUser] = useState({ displayName: "", email: "", role: "editor" as AppRole });
   const [createdCreds, setCreatedCreds] = useState<{ email: string; tempPassword: string; loginUrl: string } | null>(null);
@@ -901,95 +930,101 @@ const [prodForm, setProdForm] = useState<any>({
       </TabsContent>
 
       <TabsContent value="theme" className="mt-6">
-        <div className="space-y-6">
-          <Card>
-            <CardContent className="pt-6">
-              <h2 className="font-medium mb-4">Farben</h2>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <Label>Primärfarbe (HSL)</Label>
-                  <Input 
-                    value={themeForm.primary_color} 
-                    onChange={(e) => setThemeForm({ ...themeForm, primary_color: e.target.value })} 
-                    placeholder="z.B. 29 59% 48%"
+        <div className="grid lg:grid-cols-2 gap-6">
+          {/* Left column: Form */}
+          <div className="space-y-6">
+            <Card>
+              <CardContent className="pt-6">
+                <h2 className="font-medium mb-4">Farben</h2>
+                <div className="space-y-4">
+                  <ColorField
+                    label="Primärfarbe"
+                    value={themeForm.primary_color}
+                    onChange={(value) => handleThemeFormChange('primary_color', value)}
+                    description="Hauptfarbe für Buttons, Links und Akzente"
+                  />
+                  <ColorField
+                    label="Sekundärfarbe"
+                    value={themeForm.secondary_color}
+                    onChange={(value) => handleThemeFormChange('secondary_color', value)}
+                    description="Ergänzende Farbe für Highlights"
+                  />
+                  <ColorField
+                    label="Hintergrundfarbe"
+                    value={themeForm.background_color}
+                    onChange={(value) => handleThemeFormChange('background_color', value)}
+                    description="Haupthintergrund der Website"
+                  />
+                  <ColorField
+                    label="Textfarbe"
+                    value={themeForm.text_color}
+                    onChange={(value) => handleThemeFormChange('text_color', value)}
+                    description="Standardtextfarbe"
+                  />
+                  <ColorField
+                    label="Akzentfarbe"
+                    value={themeForm.accent_color}
+                    onChange={(value) => handleThemeFormChange('accent_color', value)}
+                    description="Für Rahmen und subtile Hervorhebungen"
                   />
                 </div>
-                <div>
-                  <Label>Sekundärfarbe (HSL)</Label>
-                  <Input 
-                    value={themeForm.secondary_color} 
-                    onChange={(e) => setThemeForm({ ...themeForm, secondary_color: e.target.value })} 
-                    placeholder="z.B. 38 36% 73%"
-                  />
-                </div>
-                <div>
-                  <Label>Hintergrundfarbe (HSL)</Label>
-                  <Input 
-                    value={themeForm.background_color} 
-                    onChange={(e) => setThemeForm({ ...themeForm, background_color: e.target.value })} 
-                    placeholder="z.B. 0 0% 100%"
-                  />
-                </div>
-                <div>
-                  <Label>Textfarbe (HSL)</Label>
-                  <Input 
-                    value={themeForm.text_color} 
-                    onChange={(e) => setThemeForm({ ...themeForm, text_color: e.target.value })} 
-                    placeholder="z.B. 0 0% 12%"
-                  />
-                </div>
-                <div>
-                  <Label>Akzentfarbe (HSL)</Label>
-                  <Input 
-                    value={themeForm.accent_color} 
-                    onChange={(e) => setThemeForm({ ...themeForm, accent_color: e.target.value })} 
-                    placeholder="z.B. 22 52% 89%"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardContent className="pt-6">
-              <h2 className="font-medium mb-4">Buttons</h2>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <Label>Button Hintergrund (HSL)</Label>
-                  <Input 
-                    value={themeForm.button_bg} 
-                    onChange={(e) => setThemeForm({ ...themeForm, button_bg: e.target.value })} 
-                    placeholder="z.B. 29 59% 48%"
+            <Card>
+              <CardContent className="pt-6">
+                <h2 className="font-medium mb-4">Buttons</h2>
+                <div className="space-y-4">
+                  <ColorField
+                    label="Button Hintergrund"
+                    value={themeForm.button_bg}
+                    onChange={(value) => handleThemeFormChange('button_bg', value)}
+                    description="Hintergrundfarbe der Primär-Buttons"
                   />
-                </div>
-                <div>
-                  <Label>Button Text (HSL)</Label>
-                  <Input 
-                    value={themeForm.button_text} 
-                    onChange={(e) => setThemeForm({ ...themeForm, button_text: e.target.value })} 
-                    placeholder="z.B. 0 0% 100%"
+                  <ColorField
+                    label="Button Text"
+                    value={themeForm.button_text}
+                    onChange={(value) => handleThemeFormChange('button_text', value)}
+                    description="Textfarbe auf Buttons"
                   />
-                </div>
-                <div>
-                  <Label>Button Hover (HSL)</Label>
-                  <Input 
-                    value={themeForm.button_hover} 
-                    onChange={(e) => setThemeForm({ ...themeForm, button_hover: e.target.value })} 
-                    placeholder="z.B. 29 59% 42%"
+                  <ColorField
+                    label="Button Hover"
+                    value={themeForm.button_hover}
+                    onChange={(value) => handleThemeFormChange('button_hover', value)}
+                    description="Button-Farbe beim Darüberfahren"
                   />
+                  <div>
+                    <Label>Button Radius (px)</Label>
+                    <Input 
+                      type="number"
+                      value={themeForm.button_radius} 
+                      onChange={(e) => handleThemeFormChange('button_radius', Number(e.target.value))} 
+                      placeholder="8"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label>Button Radius (px)</Label>
-                  <Input 
-                    type="number"
-                    value={themeForm.button_radius} 
-                    onChange={(e) => setThemeForm({ ...themeForm, button_radius: Number(e.target.value) })} 
-                    placeholder="8"
-                  />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex justify-between items-center gap-4">
+                  <Button onClick={handleSaveThemeSettings} disabled={!isEditor} className="flex-1">
+                    Speichern
+                  </Button>
+                  <Button onClick={resetThemeForm} variant="outline" className="flex-1">
+                    Verwerfen
+                  </Button>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right column: Preview */}
+          <div className="lg:sticky lg:top-6">
+            <ThemePreview colors={themeForm} />
+          </div>
+        </div>
 
           <Card>
             <CardContent className="pt-6">
