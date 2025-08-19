@@ -212,6 +212,16 @@ function TypographyPreview({ settings }: { settings: any }) {
           >
             Großer eigenständiger Link
           </a>
+          <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <p style={{ 
+              color: '#1e40af', 
+              fontFamily: settings.font_body,
+              fontSize: '14px',
+              margin: 0
+            }}>
+              <strong>Hinweis:</strong> Diese Einstellungen betreffen nur Texte und Überschriften im Inhalt, nicht die Navigation oder UI-Elemente der Website.
+            </p>
+          </div>
         </div>
       </CardContent>
     </Card>

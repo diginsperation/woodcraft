@@ -49,6 +49,11 @@ All colors MUST be HSL.
     --font-button: 'Inter';
     --section-padding-top: 80px;
     --section-padding-bottom: 80px;
+    
+    /* Typography theme variables (separate from UI colors) */
+    --heading-color: var(--primary);
+    --text-color: var(--foreground);
+    --link-color: var(--accent);
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 0 0% 20%;
@@ -112,6 +117,15 @@ All colors MUST be HSL.
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading), ui-serif, serif;
+    color: hsl(var(--heading-color));
+  }
+  
+  p, span, div {
+    color: hsl(var(--text-color));
+  }
+  
+  a {
+    color: hsl(var(--link-color));
   }
 
   /* Dynamic button styles */

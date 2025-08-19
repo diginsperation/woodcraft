@@ -9,9 +9,9 @@ export const ThemeApplicator = () => {
 
     const root = document.documentElement;
 
-    // Apply color variables
+    // Apply typography color variables (separate from UI primary)
     if (themeSettings.primary_color) {
-      root.style.setProperty('--primary', themeSettings.primary_color);
+      root.style.setProperty('--heading-color', themeSettings.primary_color);
     }
     if (themeSettings.secondary_color) {
       root.style.setProperty('--secondary', themeSettings.secondary_color);
@@ -20,10 +20,10 @@ export const ThemeApplicator = () => {
       root.style.setProperty('--background', themeSettings.background_color);
     }
     if (themeSettings.text_color) {
-      root.style.setProperty('--foreground', themeSettings.text_color);
+      root.style.setProperty('--text-color', themeSettings.text_color);
     }
     if (themeSettings.accent_color) {
-      root.style.setProperty('--accent', themeSettings.accent_color);
+      root.style.setProperty('--link-color', themeSettings.accent_color);
     }
 
     // Apply button variables
