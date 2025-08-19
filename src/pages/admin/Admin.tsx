@@ -417,6 +417,36 @@ const [prodForm, setProdForm] = useState<any>({
     }
   };
 
+  const handleToggleContactEnabled = async (id: string, currentStatus: boolean) => {
+    if (!isEditor) return;
+    try {
+      const { error } = await supabase
+        .from("contact_actions")
+        .update({ is_enabled: !currentStatus })
+        .eq("id", id);
+      if (error) throw error;
+      toast.success("Contact Action Status geändert");
+      loadHomepageData();
+    } catch (error) {
+      toast.error("Fehler beim Ändern des Status");
+    }
+  };
+
+  const handleToggleSocialEnabled = async (id: string, currentStatus: boolean) => {
+    if (!isEditor) return;
+    try {
+      const { error } = await supabase
+        .from("social_links")
+        .update({ is_enabled: !currentStatus })
+        .eq("id", id);
+      if (error) throw error;
+      toast.success("Social Link Status geändert");
+      loadHomepageData();
+    } catch (error) {
+      toast.error("Fehler beim Ändern des Status");
+    }
+  };
+
   const handleSaveFooterContact = async () => {
     if (!isEditor) return;
     try {
@@ -696,13 +726,23 @@ const [prodForm, setProdForm] = useState<any>({
                     <h3 className="font-medium">Bestehende Contact Actions</h3>
                     {contactActions.map((contact) => (
                       <div key={contact.id} className="flex items-center justify-between p-2 border rounded">
-                        <div className="flex items-center gap-4">
+                        <div className="flex flex-col">
                           <span>{contact.label} - {contact.url}</span>
                           <span className={`text-sm ${contact.is_enabled ? 'text-green-600' : 'text-red-600'}`}>
                             {contact.is_enabled ? 'Aktiv' : 'Inaktiv'}
                           </span>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center space-x-2">
+                            <Switch
+                              checked={contact.is_enabled}
+                              onCheckedChange={() => handleToggleContactEnabled(contact.id, contact.is_enabled)}
+                              disabled={!isEditor}
+                            />
+                            <Label className="text-sm">
+                              {contact.is_enabled ? 'An' : 'Aus'}
+                            </Label>
+                          </div>
                           <Button
                             size="sm"
                             variant="outline"
@@ -809,7 +849,17 @@ const [prodForm, setProdForm] = useState<any>({
                             {social.is_enabled ? 'Aktiv' : 'Inaktiv'}
                           </span>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center space-x-2">
+                            <Switch
+                              checked={social.is_enabled}
+                              onCheckedChange={() => handleToggleSocialEnabled(social.id, social.is_enabled)}
+                              disabled={!isEditor}
+                            />
+                            <Label className="text-sm">
+                              {social.is_enabled ? 'An' : 'Aus'}
+                            </Label>
+                          </div>
                           <Button
                             size="sm"
                             variant="outline"
