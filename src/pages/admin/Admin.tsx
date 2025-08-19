@@ -12,8 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Seo } from "@/components/Seo";
 import { useThemeSettings } from "@/hooks/useThemeSettings";
-import { ColorField } from "@/components/admin/ColorField";
-import { ThemePreview } from "@/components/admin/ThemePreview";
+import { ThemeSection } from "@/components/admin/ThemeSection";
 
 // Admin roles helper
 type AppRole = "admin" | "editor" | "viewer";
@@ -902,101 +901,11 @@ const [prodForm, setProdForm] = useState<any>({
         </TabsContent>
 
         <TabsContent value="theme" className="mt-6">
-          <div className="grid lg:grid-cols-2 gap-6">
-            {/* Left column: Form */}
-            <div className="space-y-6">
-              <Card>
-                <CardContent className="pt-6">
-                  <h2 className="font-medium mb-4">Farben</h2>
-                  <div className="space-y-4">
-                    <ColorField
-                      label="Primärfarbe"
-                      value={themeForm.primary_color}
-                      onChange={(value) => handleThemeFormChange('primary_color', value)}
-                      description="Hauptfarbe für Buttons, Links und Akzente"
-                    />
-                    <ColorField
-                      label="Sekundärfarbe"
-                      value={themeForm.secondary_color}
-                      onChange={(value) => handleThemeFormChange('secondary_color', value)}
-                      description="Ergänzende Farbe für Highlights"
-                    />
-                    <ColorField
-                      label="Hintergrundfarbe"
-                      value={themeForm.background_color}
-                      onChange={(value) => handleThemeFormChange('background_color', value)}
-                      description="Haupthintergrund der Website"
-                    />
-                    <ColorField
-                      label="Textfarbe"
-                      value={themeForm.text_color}
-                      onChange={(value) => handleThemeFormChange('text_color', value)}
-                      description="Standardtextfarbe"
-                    />
-                    <ColorField
-                      label="Akzentfarbe"
-                      value={themeForm.accent_color}
-                      onChange={(value) => handleThemeFormChange('accent_color', value)}
-                      description="Für Rahmen und subtile Hervorhebungen"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="pt-6">
-                  <h2 className="font-medium mb-4">Buttons</h2>
-                  <div className="space-y-4">
-                    <ColorField
-                      label="Button Hintergrund"
-                      value={themeForm.button_bg}
-                      onChange={(value) => handleThemeFormChange('button_bg', value)}
-                      description="Hintergrundfarbe der Primär-Buttons"
-                    />
-                    <ColorField
-                      label="Button Text"
-                      value={themeForm.button_text}
-                      onChange={(value) => handleThemeFormChange('button_text', value)}
-                      description="Textfarbe auf Buttons"
-                    />
-                    <ColorField
-                      label="Button Hover"
-                      value={themeForm.button_hover}
-                      onChange={(value) => handleThemeFormChange('button_hover', value)}
-                      description="Button-Farbe beim Darüberfahren"
-                    />
-                    <div>
-                      <Label>Button Radius (px)</Label>
-                      <Input 
-                        type="number"
-                        value={themeForm.button_radius} 
-                        onChange={(e) => handleThemeFormChange('button_radius', Number(e.target.value))} 
-                        placeholder="8"
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex justify-between items-center gap-4">
-                    <Button onClick={handleSaveThemeSettings} disabled={!isEditor} className="flex-1">
-                      Speichern
-                    </Button>
-                    <Button onClick={resetThemeForm} variant="outline" className="flex-1">
-                      Verwerfen
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Right column: Preview */}
-            <div className="lg:sticky lg:top-6">
-              <ThemePreview colors={themeForm} />
-            </div>
-          </div>
+          <ThemeSection 
+            themeSettings={themeSettings}
+            onSave={saveThemeSettings}
+            isEditor={isEditor}
+          />
         </TabsContent>
 
         <TabsContent value="categories" className="mt-6">
