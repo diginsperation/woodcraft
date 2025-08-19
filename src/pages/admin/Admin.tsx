@@ -261,6 +261,173 @@ const [prodForm, setProdForm] = useState<any>({
     }
   };
 
+  // Homepage save handlers
+  const handleSaveHeader = async () => {
+    if (!isEditor) return;
+    try {
+      if (headerData?.id) {
+        const { error } = await supabase
+          .from("homepage_header")
+          .update(headerForm)
+          .eq("id", headerData.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("homepage_header")
+          .insert([{ ...headerForm, is_active: true }]);
+        if (error) throw error;
+      }
+      toast.success("Header gespeichert");
+      loadHomepageData();
+    } catch (error) {
+      toast.error("Fehler beim Speichern des Headers");
+    }
+  };
+
+  const handleSaveHero = async () => {
+    if (!isEditor) return;
+    try {
+      if (heroData?.id) {
+        const { error } = await supabase
+          .from("homepage_hero")
+          .update(heroForm)
+          .eq("id", heroData.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("homepage_hero")
+          .insert([{ ...heroForm, is_active: true }]);
+        if (error) throw error;
+      }
+      toast.success("Hero-Sektion gespeichert");
+      loadHomepageData();
+    } catch (error) {
+      toast.error("Fehler beim Speichern der Hero-Sektion");
+    }
+  };
+
+  const handleSaveProcess = async () => {
+    if (!isEditor) return;
+    try {
+      if (processData?.id) {
+        const { error } = await supabase
+          .from("home_process")
+          .update(processForm)
+          .eq("id", processData.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("home_process")
+          .insert([processForm]);
+        if (error) throw error;
+      }
+      toast.success("Process-Sektion gespeichert");
+      loadHomepageData();
+    } catch (error) {
+      toast.error("Fehler beim Speichern der Process-Sektion");
+    }
+  };
+
+  const handleSaveContact = async () => {
+    if (!isEditor) return;
+    try {
+      if (editingContact) {
+        const { error } = await supabase
+          .from("contact_actions")
+          .update(contactForm)
+          .eq("id", editingContact.id);
+        if (error) throw error;
+        setEditingContact(null);
+      } else {
+        const { error } = await supabase
+          .from("contact_actions")
+          .insert([contactForm]);
+        if (error) throw error;
+      }
+      setContactForm({ label: "", url: "", sort_order: 0 });
+      toast.success("Contact Action gespeichert");
+      loadHomepageData();
+    } catch (error) {
+      toast.error("Fehler beim Speichern der Contact Action");
+    }
+  };
+
+  const handleDeleteContact = async (id: string) => {
+    if (!isEditor) return;
+    try {
+      const { error } = await supabase
+        .from("contact_actions")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+      toast.success("Contact Action gelöscht");
+      loadHomepageData();
+    } catch (error) {
+      toast.error("Fehler beim Löschen der Contact Action");
+    }
+  };
+
+  const handleSaveSocial = async () => {
+    if (!isEditor) return;
+    try {
+      if (editingSocial) {
+        const { error } = await supabase
+          .from("social_links")
+          .update(socialForm)
+          .eq("id", editingSocial.id);
+        if (error) throw error;
+        setEditingSocial(null);
+      } else {
+        const { error } = await supabase
+          .from("social_links")
+          .insert([socialForm]);
+        if (error) throw error;
+      }
+      setSocialForm({ platform: "", label: "", url: "", icon: "", sort_order: 0 });
+      toast.success("Social Link gespeichert");
+      loadHomepageData();
+    } catch (error) {
+      toast.error("Fehler beim Speichern des Social Links");
+    }
+  };
+
+  const handleDeleteSocial = async (id: string) => {
+    if (!isEditor) return;
+    try {
+      const { error } = await supabase
+        .from("social_links")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+      toast.success("Social Link gelöscht");
+      loadHomepageData();
+    } catch (error) {
+      toast.error("Fehler beim Löschen des Social Links");
+    }
+  };
+
+  const handleSaveFooterContact = async () => {
+    if (!isEditor) return;
+    try {
+      if (footerContactData?.id) {
+        const { error } = await supabase
+          .from("footer_contact_block")
+          .update(footerContactForm)
+          .eq("id", footerContactData.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("footer_contact_block")
+          .insert([footerContactForm]);
+        if (error) throw error;
+      }
+      toast.success("Footer Contact gespeichert");
+      loadHomepageData();
+    } catch (error) {
+      toast.error("Fehler beim Speichern des Footer Contacts");
+    }
+  };
+
   if (!sessionUserId) {
     return (
       <div className="container py-10 max-w-xl">
@@ -305,8 +472,353 @@ const [prodForm, setProdForm] = useState<any>({
         </TabsList>
 
         <TabsContent value="homepage" className="mt-6">
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">Homepage-Verwaltung wird hier hinzugefügt...</p>
+          <div className="space-y-6">
+            {/* Header Section */}
+            <Card>
+              <CardContent className="pt-6">
+                <h2 className="font-medium mb-4">Header</h2>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="logo_text">Logo Text</Label>
+                    <Input 
+                      id="logo_text"
+                      value={headerForm.logo_text} 
+                      onChange={(e) => setHeaderForm({...headerForm, logo_text: e.target.value})}
+                      placeholder="Logo Text"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="logo_image_url">Logo Bild URL</Label>
+                    <Input 
+                      id="logo_image_url"
+                      value={headerForm.logo_image_url} 
+                      onChange={(e) => setHeaderForm({...headerForm, logo_image_url: e.target.value})}
+                      placeholder="https://..."
+                    />
+                  </div>
+                  <Button onClick={handleSaveHeader} disabled={!isEditor}>
+                    Header Speichern
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Hero Section */}
+            <Card>
+              <CardContent className="pt-6">
+                <h2 className="font-medium mb-4">Hero Sektion</h2>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="hero_title">Titel</Label>
+                    <Input 
+                      id="hero_title"
+                      value={heroForm.title} 
+                      onChange={(e) => setHeroForm({...heroForm, title: e.target.value})}
+                      placeholder="Hero Titel"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="hero_subtitle">Untertitel</Label>
+                    <Textarea 
+                      id="hero_subtitle"
+                      value={heroForm.subtitle} 
+                      onChange={(e) => setHeroForm({...heroForm, subtitle: e.target.value})}
+                      placeholder="Hero Untertitel"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="hero_btn_primary_label">Primär Button Text</Label>
+                      <Input 
+                        id="hero_btn_primary_label"
+                        value={heroForm.button_primary_label} 
+                        onChange={(e) => setHeroForm({...heroForm, button_primary_label: e.target.value})}
+                        placeholder="Button Text"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="hero_btn_primary_link">Primär Button Link</Label>
+                      <Input 
+                        id="hero_btn_primary_link"
+                        value={heroForm.button_primary_link} 
+                        onChange={(e) => setHeroForm({...heroForm, button_primary_link: e.target.value})}
+                        placeholder="/link"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="hero_btn_secondary_label">Sekundär Button Text</Label>
+                      <Input 
+                        id="hero_btn_secondary_label"
+                        value={heroForm.button_secondary_label} 
+                        onChange={(e) => setHeroForm({...heroForm, button_secondary_label: e.target.value})}
+                        placeholder="Button Text"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="hero_btn_secondary_link">Sekundär Button Link</Label>
+                      <Input 
+                        id="hero_btn_secondary_link"
+                        value={heroForm.button_secondary_link} 
+                        onChange={(e) => setHeroForm({...heroForm, button_secondary_link: e.target.value})}
+                        placeholder="/link"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="hero_bg_image">Hintergrundbild URL</Label>
+                    <Input 
+                      id="hero_bg_image"
+                      value={heroForm.background_image_url} 
+                      onChange={(e) => setHeroForm({...heroForm, background_image_url: e.target.value})}
+                      placeholder="https://..."
+                    />
+                  </div>
+                  <Button onClick={handleSaveHero} disabled={!isEditor}>
+                    Hero Speichern
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Process Section */}
+            <Card>
+              <CardContent className="pt-6">
+                <h2 className="font-medium mb-4">Process Sektion</h2>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="process_title">Titel</Label>
+                    <Input 
+                      id="process_title"
+                      value={processForm.title} 
+                      onChange={(e) => setProcessForm({...processForm, title: e.target.value})}
+                      placeholder="Process Titel"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="process_subtitle">Untertitel</Label>
+                    <Textarea 
+                      id="process_subtitle"
+                      value={processForm.subtitle} 
+                      onChange={(e) => setProcessForm({...processForm, subtitle: e.target.value})}
+                      placeholder="Process Untertitel"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="process_btn_label">Button Text</Label>
+                      <Input 
+                        id="process_btn_label"
+                        value={processForm.button_label} 
+                        onChange={(e) => setProcessForm({...processForm, button_label: e.target.value})}
+                        placeholder="Button Text"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="process_btn_link">Button Link</Label>
+                      <Input 
+                        id="process_btn_link"
+                        value={processForm.button_link} 
+                        onChange={(e) => setProcessForm({...processForm, button_link: e.target.value})}
+                        placeholder="/link"
+                      />
+                    </div>
+                  </div>
+                  <Button onClick={handleSaveProcess} disabled={!isEditor}>
+                    Process Speichern
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Contact Actions */}
+            <Card>
+              <CardContent className="pt-6">
+                <h2 className="font-medium mb-4">Contact Actions</h2>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="contact_label">Label</Label>
+                      <Input 
+                        id="contact_label"
+                        value={contactForm.label} 
+                        onChange={(e) => setContactForm({...contactForm, label: e.target.value})}
+                        placeholder="Label"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="contact_url">URL</Label>
+                      <Input 
+                        id="contact_url"
+                        value={contactForm.url} 
+                        onChange={(e) => setContactForm({...contactForm, url: e.target.value})}
+                        placeholder="https://..."
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="contact_sort">Sort Order</Label>
+                      <Input 
+                        id="contact_sort"
+                        type="number"
+                        value={contactForm.sort_order} 
+                        onChange={(e) => setContactForm({...contactForm, sort_order: Number(e.target.value)})}
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+                  <Button onClick={handleSaveContact} disabled={!isEditor}>
+                    {editingContact ? "Update" : "Hinzufügen"}
+                  </Button>
+                  
+                  <Separator />
+                  
+                  <div className="space-y-2">
+                    <h3 className="font-medium">Bestehende Contact Actions</h3>
+                    {contactActions.map((contact) => (
+                      <div key={contact.id} className="flex items-center justify-between p-2 border rounded">
+                        <span>{contact.label} - {contact.url}</span>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setEditingContact(contact);
+                              setContactForm({
+                                label: contact.label,
+                                url: contact.url,
+                                sort_order: contact.sort_order
+                              });
+                            }}
+                          >
+                            Bearbeiten
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleDeleteContact(contact.id)}
+                            disabled={!isEditor}
+                          >
+                            Löschen
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Social Links */}
+            <Card>
+              <CardContent className="pt-6">
+                <h2 className="font-medium mb-4">Social Links</h2>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="social_platform">Platform</Label>
+                      <Input 
+                        id="social_platform"
+                        value={socialForm.platform} 
+                        onChange={(e) => setSocialForm({...socialForm, platform: e.target.value})}
+                        placeholder="Instagram"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="social_label">Label</Label>
+                      <Input 
+                        id="social_label"
+                        value={socialForm.label} 
+                        onChange={(e) => setSocialForm({...socialForm, label: e.target.value})}
+                        placeholder="Folge uns"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="social_url">URL</Label>
+                      <Input 
+                        id="social_url"
+                        value={socialForm.url} 
+                        onChange={(e) => setSocialForm({...socialForm, url: e.target.value})}
+                        placeholder="https://..."
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="social_icon">Icon</Label>
+                      <Input 
+                        id="social_icon"
+                        value={socialForm.icon} 
+                        onChange={(e) => setSocialForm({...socialForm, icon: e.target.value})}
+                        placeholder="instagram"
+                      />
+                    </div>
+                  </div>
+                  <Button onClick={handleSaveSocial} disabled={!isEditor}>
+                    {editingSocial ? "Update" : "Hinzufügen"}
+                  </Button>
+                  
+                  <Separator />
+                  
+                  <div className="space-y-2">
+                    <h3 className="font-medium">Bestehende Social Links</h3>
+                    {socialLinks.map((social) => (
+                      <div key={social.id} className="flex items-center justify-between p-2 border rounded">
+                        <span>{social.platform} - {social.label}</span>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setEditingSocial(social);
+                              setSocialForm({
+                                platform: social.platform,
+                                label: social.label,
+                                url: social.url,
+                                icon: social.icon,
+                                sort_order: social.sort_order
+                              });
+                            }}
+                          >
+                            Bearbeiten
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleDeleteSocial(social.id)}
+                            disabled={!isEditor}
+                          >
+                            Löschen
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Footer Contact Block */}
+            <Card>
+              <CardContent className="pt-6">
+                <h2 className="font-medium mb-4">Footer Contact Block</h2>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="footer_content">Inhalt (Rich Text)</Label>
+                    <Textarea 
+                      id="footer_content"
+                      value={footerContactForm.content_rich} 
+                      onChange={(e) => setFooterContactForm({...footerContactForm, content_rich: e.target.value})}
+                      placeholder="Footer Contact Inhalt..."
+                      rows={5}
+                    />
+                  </div>
+                  <Button onClick={handleSaveFooterContact} disabled={!isEditor}>
+                    Footer Contact Speichern
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
 
