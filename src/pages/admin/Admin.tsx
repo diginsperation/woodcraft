@@ -707,14 +707,6 @@ const [prodForm, setProdForm] = useState<any>({
                         placeholder="0"
                       />
                     </div>
-                    <div className="flex items-center space-x-2 pt-6">
-                      <Switch
-                        id="contact_enabled"
-                        checked={contactForm.is_enabled}
-                        onCheckedChange={(checked) => setContactForm({...contactForm, is_enabled: checked})}
-                      />
-                      <Label htmlFor="contact_enabled">Aktiviert</Label>
-                    </div>
                   </div>
                   <Button onClick={handleSaveContact} disabled={!isEditor}>
                     {editingContact ? "Update" : "Hinzufügen"}
@@ -823,14 +815,6 @@ const [prodForm, setProdForm] = useState<any>({
                           ))}
                         </SelectContent>
                       </Select>
-                    </div>
-                    <div className="flex items-center space-x-2 pt-6">
-                      <Switch
-                        id="social_enabled"
-                        checked={socialForm.is_enabled}
-                        onCheckedChange={(checked) => setSocialForm({...socialForm, is_enabled: checked})}
-                      />
-                      <Label htmlFor="social_enabled">Aktiviert</Label>
                     </div>
                   </div>
                   <Button onClick={handleSaveSocial} disabled={!isEditor}>
