@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Seo } from "@/components/Seo";
 import { useThemeSettings } from "@/hooks/useThemeSettings";
@@ -15,6 +17,13 @@ import { ThemePreview } from "@/components/admin/ThemePreview";
 
 // Admin roles helper
 type AppRole = "admin" | "editor" | "viewer";
+
+// Available icons for social links
+const availableIcons = [
+  "instagram", "facebook", "twitter", "linkedin", "youtube", "tiktok", 
+  "whatsapp", "telegram", "discord", "pinterest", "snapchat", "twitch",
+  "mail", "phone", "map-pin", "globe", "star", "heart", "message-circle"
+];
 
 export default function Admin() {
   const [email, setEmail] = useState("");
@@ -55,14 +64,16 @@ export default function Admin() {
   const [contactForm, setContactForm] = useState<any>({
     label: "",
     url: "",
-    sort_order: 0
+    sort_order: 0,
+    is_enabled: true
   });
   const [socialForm, setSocialForm] = useState<any>({
     platform: "",
     label: "",
     url: "",
     icon: "",
-    sort_order: 0
+    sort_order: 0,
+    is_enabled: true
   });
   const [editingContact, setEditingContact] = useState<any>(null);
   const [editingSocial, setEditingSocial] = useState<any>(null);
@@ -344,7 +355,7 @@ const [prodForm, setProdForm] = useState<any>({
           .insert([contactForm]);
         if (error) throw error;
       }
-      setContactForm({ label: "", url: "", sort_order: 0 });
+      setContactForm({ label: "", url: "", sort_order: 0, is_enabled: true });
       toast.success("Contact Action gespeichert");
       loadHomepageData();
     } catch (error) {
@@ -383,7 +394,7 @@ const [prodForm, setProdForm] = useState<any>({
           .insert([socialForm]);
         if (error) throw error;
       }
-      setSocialForm({ platform: "", label: "", url: "", icon: "", sort_order: 0 });
+      setSocialForm({ platform: "", label: "", url: "", icon: "", sort_order: 0, is_enabled: true });
       toast.success("Social Link gespeichert");
       loadHomepageData();
     } catch (error) {
@@ -637,7 +648,7 @@ const [prodForm, setProdForm] = useState<any>({
               <CardContent className="pt-6">
                 <h2 className="font-medium mb-4">Contact Actions</h2>
                 <div className="space-y-4">
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-4 gap-4">
                     <div>
                       <Label htmlFor="contact_label">Label</Label>
                       <Input 
@@ -666,6 +677,14 @@ const [prodForm, setProdForm] = useState<any>({
                         placeholder="0"
                       />
                     </div>
+                    <div className="flex items-center space-x-2 pt-6">
+                      <Switch
+                        id="contact_enabled"
+                        checked={contactForm.is_enabled}
+                        onCheckedChange={(checked) => setContactForm({...contactForm, is_enabled: checked})}
+                      />
+                      <Label htmlFor="contact_enabled">Aktiviert</Label>
+                    </div>
                   </div>
                   <Button onClick={handleSaveContact} disabled={!isEditor}>
                     {editingContact ? "Update" : "Hinzufügen"}
@@ -677,7 +696,12 @@ const [prodForm, setProdForm] = useState<any>({
                     <h3 className="font-medium">Bestehende Contact Actions</h3>
                     {contactActions.map((contact) => (
                       <div key={contact.id} className="flex items-center justify-between p-2 border rounded">
-                        <span>{contact.label} - {contact.url}</span>
+                        <div className="flex items-center gap-4">
+                          <span>{contact.label} - {contact.url}</span>
+                          <span className={`text-sm ${contact.is_enabled ? 'text-green-600' : 'text-red-600'}`}>
+                            {contact.is_enabled ? 'Aktiv' : 'Inaktiv'}
+                          </span>
+                        </div>
                         <div className="flex gap-2">
                           <Button
                             size="sm"
@@ -687,7 +711,8 @@ const [prodForm, setProdForm] = useState<any>({
                               setContactForm({
                                 label: contact.label,
                                 url: contact.url,
-                                sort_order: contact.sort_order
+                                sort_order: contact.sort_order,
+                                is_enabled: contact.is_enabled
                               });
                             }}
                           >
@@ -734,7 +759,7 @@ const [prodForm, setProdForm] = useState<any>({
                       />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
                     <div>
                       <Label htmlFor="social_url">URL</Label>
                       <Input 
@@ -746,12 +771,26 @@ const [prodForm, setProdForm] = useState<any>({
                     </div>
                     <div>
                       <Label htmlFor="social_icon">Icon</Label>
-                      <Input 
-                        id="social_icon"
-                        value={socialForm.icon} 
-                        onChange={(e) => setSocialForm({...socialForm, icon: e.target.value})}
-                        placeholder="instagram"
+                      <Select value={socialForm.icon} onValueChange={(value) => setSocialForm({...socialForm, icon: value})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Icon wählen" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableIcons.map((icon) => (
+                            <SelectItem key={icon} value={icon}>
+                              {icon}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-center space-x-2 pt-6">
+                      <Switch
+                        id="social_enabled"
+                        checked={socialForm.is_enabled}
+                        onCheckedChange={(checked) => setSocialForm({...socialForm, is_enabled: checked})}
                       />
+                      <Label htmlFor="social_enabled">Aktiviert</Label>
                     </div>
                   </div>
                   <Button onClick={handleSaveSocial} disabled={!isEditor}>
@@ -764,7 +803,12 @@ const [prodForm, setProdForm] = useState<any>({
                     <h3 className="font-medium">Bestehende Social Links</h3>
                     {socialLinks.map((social) => (
                       <div key={social.id} className="flex items-center justify-between p-2 border rounded">
-                        <span>{social.platform} - {social.label}</span>
+                        <div className="flex items-center gap-4">
+                          <span>{social.platform} - {social.label}</span>
+                          <span className={`text-sm ${social.is_enabled ? 'text-green-600' : 'text-red-600'}`}>
+                            {social.is_enabled ? 'Aktiv' : 'Inaktiv'}
+                          </span>
+                        </div>
                         <div className="flex gap-2">
                           <Button
                             size="sm"
@@ -776,7 +820,8 @@ const [prodForm, setProdForm] = useState<any>({
                                 label: social.label,
                                 url: social.url,
                                 icon: social.icon,
-                                sort_order: social.sort_order
+                                sort_order: social.sort_order,
+                                is_enabled: social.is_enabled
                               });
                             }}
                           >
