@@ -39,6 +39,17 @@ All colors MUST be HSL.
 
     --radius: 0.5rem;
 
+    /* Theme variables for dynamic customization */
+    --button-bg: var(--primary);
+    --button-text: var(--primary-foreground);
+    --button-hover: var(--primary);
+    --button-radius: 8px;
+    --font-heading: 'Playfair Display';
+    --font-body: 'Inter';
+    --font-button: 'Inter';
+    --section-padding-top: 80px;
+    --section-padding-bottom: 80px;
+
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 0 0% 20%;
     --sidebar-primary: 29 59% 48%;
@@ -96,5 +107,28 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading), ui-serif, serif;
+  }
+
+  /* Dynamic button styles */
+  .btn-primary {
+    background-color: hsl(var(--button-bg));
+    color: hsl(var(--button-text));
+    border-radius: var(--button-radius);
+    font-family: var(--font-button), ui-sans-serif, system-ui, sans-serif;
+  }
+
+  .btn-primary:hover {
+    background-color: hsl(var(--button-hover));
+  }
+
+  /* Dynamic section spacing */
+  .section-spacing {
+    padding-top: var(--section-padding-top);
+    padding-bottom: var(--section-padding-bottom);
   }
 }

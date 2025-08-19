@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Seo } from "@/components/Seo";
+import { useThemeSettings } from "@/hooks/useThemeSettings";
 
 // Admin roles helper
 type AppRole = "admin" | "editor" | "viewer";
@@ -64,6 +65,47 @@ export default function Admin() {
   const [editingContact, setEditingContact] = useState<any>(null);
   const [editingSocial, setEditingSocial] = useState<any>(null);
   const [footerContactForm, setFooterContactForm] = useState<any>({ content_rich: "" });
+
+  // Theme settings
+  const { themeSettings, saveThemeSettings } = useThemeSettings();
+  const [themeForm, setThemeForm] = useState({
+    primary_color: "29 59% 48%",
+    secondary_color: "38 36% 73%",
+    background_color: "0 0% 100%",
+    text_color: "0 0% 12%",
+    accent_color: "22 52% 89%",
+    button_bg: "29 59% 48%",
+    button_text: "0 0% 100%",
+    button_hover: "29 59% 42%",
+    button_radius: 8,
+    font_heading: "Playfair Display",
+    font_body: "Inter",
+    font_button: "Inter",
+    section_padding_top: 80,
+    section_padding_bottom: 80,
+  });
+
+  // Load theme settings into form when data is available
+  useEffect(() => {
+    if (themeSettings) {
+      setThemeForm({
+        primary_color: themeSettings.primary_color || "29 59% 48%",
+        secondary_color: themeSettings.secondary_color || "38 36% 73%",
+        background_color: themeSettings.background_color || "0 0% 100%",
+        text_color: themeSettings.text_color || "0 0% 12%",
+        accent_color: themeSettings.accent_color || "22 52% 89%",
+        button_bg: themeSettings.button_bg || "29 59% 48%",
+        button_text: themeSettings.button_text || "0 0% 100%",
+        button_hover: themeSettings.button_hover || "29 59% 42%",
+        button_radius: themeSettings.button_radius || 8,
+        font_heading: themeSettings.font_heading || "Playfair Display",
+        font_body: themeSettings.font_body || "Inter",
+        font_button: themeSettings.font_button || "Inter",
+        section_padding_top: themeSettings.section_padding_top || 80,
+        section_padding_bottom: themeSettings.section_padding_bottom || 80,
+      });
+    }
+  }, [themeSettings]);
 
   // Forms
   const [catForm, setCatForm] = useState<{ id?: string; name: string; slug?: string; description?: string; sort_order: number }>({ name: "", description: "", sort_order: 0 });
@@ -444,6 +486,17 @@ const [prodForm, setProdForm] = useState<any>({
     toast.success("Footer-Kontakt gespeichert");
   };
 
+  // Theme settings save function
+  const handleSaveThemeSettings = async () => {
+    if (!isEditor) return;
+    const result = await saveThemeSettings(themeForm);
+    if (result.success) {
+      toast.success("Theme-Einstellungen gespeichert");
+    } else {
+      toast.error("Fehler beim Speichern der Theme-Einstellungen");
+    }
+  };
+
   // Users: create with edge function (requires service role secret)
   const [newUser, setNewUser] = useState({ displayName: "", email: "", role: "editor" as AppRole });
   const [createdCreds, setCreatedCreds] = useState<{ email: string; tempPassword: string; loginUrl: string } | null>(null);
@@ -499,6 +552,7 @@ const [prodForm, setProdForm] = useState<any>({
       <Tabs defaultValue="homepage">
         <TabsList>
           <TabsTrigger value="homepage">Startseite</TabsTrigger>
+          <TabsTrigger value="theme">Theme & Styles</TabsTrigger>
           <TabsTrigger value="categories">Kategorien</TabsTrigger>
           <TabsTrigger value="products">Produkte</TabsTrigger>
           <TabsTrigger value="users" disabled={!canManageUsers}>Benutzer</TabsTrigger>
@@ -841,6 +895,192 @@ const [prodForm, setProdForm] = useState<any>({
                 </div>
                 <Button onClick={saveFooterContact} disabled={!isEditor}>Footer-Kontakt speichern</Button>
               </div>
+            </CardContent>
+          </Card>
+        </div>
+      </TabsContent>
+
+      <TabsContent value="theme" className="mt-6">
+        <div className="space-y-6">
+          <Card>
+            <CardContent className="pt-6">
+              <h2 className="font-medium mb-4">Farben</h2>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <Label>Primärfarbe (HSL)</Label>
+                  <Input 
+                    value={themeForm.primary_color} 
+                    onChange={(e) => setThemeForm({ ...themeForm, primary_color: e.target.value })} 
+                    placeholder="z.B. 29 59% 48%"
+                  />
+                </div>
+                <div>
+                  <Label>Sekundärfarbe (HSL)</Label>
+                  <Input 
+                    value={themeForm.secondary_color} 
+                    onChange={(e) => setThemeForm({ ...themeForm, secondary_color: e.target.value })} 
+                    placeholder="z.B. 38 36% 73%"
+                  />
+                </div>
+                <div>
+                  <Label>Hintergrundfarbe (HSL)</Label>
+                  <Input 
+                    value={themeForm.background_color} 
+                    onChange={(e) => setThemeForm({ ...themeForm, background_color: e.target.value })} 
+                    placeholder="z.B. 0 0% 100%"
+                  />
+                </div>
+                <div>
+                  <Label>Textfarbe (HSL)</Label>
+                  <Input 
+                    value={themeForm.text_color} 
+                    onChange={(e) => setThemeForm({ ...themeForm, text_color: e.target.value })} 
+                    placeholder="z.B. 0 0% 12%"
+                  />
+                </div>
+                <div>
+                  <Label>Akzentfarbe (HSL)</Label>
+                  <Input 
+                    value={themeForm.accent_color} 
+                    onChange={(e) => setThemeForm({ ...themeForm, accent_color: e.target.value })} 
+                    placeholder="z.B. 22 52% 89%"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <h2 className="font-medium mb-4">Buttons</h2>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <Label>Button Hintergrund (HSL)</Label>
+                  <Input 
+                    value={themeForm.button_bg} 
+                    onChange={(e) => setThemeForm({ ...themeForm, button_bg: e.target.value })} 
+                    placeholder="z.B. 29 59% 48%"
+                  />
+                </div>
+                <div>
+                  <Label>Button Text (HSL)</Label>
+                  <Input 
+                    value={themeForm.button_text} 
+                    onChange={(e) => setThemeForm({ ...themeForm, button_text: e.target.value })} 
+                    placeholder="z.B. 0 0% 100%"
+                  />
+                </div>
+                <div>
+                  <Label>Button Hover (HSL)</Label>
+                  <Input 
+                    value={themeForm.button_hover} 
+                    onChange={(e) => setThemeForm({ ...themeForm, button_hover: e.target.value })} 
+                    placeholder="z.B. 29 59% 42%"
+                  />
+                </div>
+                <div>
+                  <Label>Button Radius (px)</Label>
+                  <Input 
+                    type="number"
+                    value={themeForm.button_radius} 
+                    onChange={(e) => setThemeForm({ ...themeForm, button_radius: Number(e.target.value) })} 
+                    placeholder="8"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <h2 className="font-medium mb-4">Schriftarten</h2>
+              <div className="grid md:grid-cols-3 gap-4">
+                <div>
+                  <Label>Überschriften Font</Label>
+                  <select 
+                    className="w-full h-10 rounded-md border bg-background px-3"
+                    value={themeForm.font_heading} 
+                    onChange={(e) => setThemeForm({ ...themeForm, font_heading: e.target.value })}
+                  >
+                    <option value="Playfair Display">Playfair Display</option>
+                    <option value="Inter">Inter</option>
+                    <option value="Roboto">Roboto</option>
+                    <option value="Lora">Lora</option>
+                    <option value="Open Sans">Open Sans</option>
+                    <option value="Montserrat">Montserrat</option>
+                    <option value="Oswald">Oswald</option>
+                  </select>
+                </div>
+                <div>
+                  <Label>Body Font</Label>
+                  <select 
+                    className="w-full h-10 rounded-md border bg-background px-3"
+                    value={themeForm.font_body} 
+                    onChange={(e) => setThemeForm({ ...themeForm, font_body: e.target.value })}
+                  >
+                    <option value="Inter">Inter</option>
+                    <option value="Playfair Display">Playfair Display</option>
+                    <option value="Roboto">Roboto</option>
+                    <option value="Lora">Lora</option>
+                    <option value="Open Sans">Open Sans</option>
+                    <option value="Montserrat">Montserrat</option>
+                    <option value="Source Sans Pro">Source Sans Pro</option>
+                  </select>
+                </div>
+                <div>
+                  <Label>Button Font</Label>
+                  <select 
+                    className="w-full h-10 rounded-md border bg-background px-3"
+                    value={themeForm.font_button} 
+                    onChange={(e) => setThemeForm({ ...themeForm, font_button: e.target.value })}
+                  >
+                    <option value="Inter">Inter</option>
+                    <option value="Playfair Display">Playfair Display</option>
+                    <option value="Roboto">Roboto</option>
+                    <option value="Lora">Lora</option>
+                    <option value="Open Sans">Open Sans</option>
+                    <option value="Montserrat">Montserrat</option>
+                    <option value="Source Sans Pro">Source Sans Pro</option>
+                  </select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <h2 className="font-medium mb-4">Abstände</h2>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <Label>Section Padding Oben (px)</Label>
+                  <Input 
+                    type="number"
+                    value={themeForm.section_padding_top} 
+                    onChange={(e) => setThemeForm({ ...themeForm, section_padding_top: Number(e.target.value) })} 
+                    placeholder="80"
+                  />
+                </div>
+                <div>
+                  <Label>Section Padding Unten (px)</Label>
+                  <Input 
+                    type="number"
+                    value={themeForm.section_padding_bottom} 
+                    onChange={(e) => setThemeForm({ ...themeForm, section_padding_bottom: Number(e.target.value) })} 
+                    placeholder="80"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <Button onClick={handleSaveThemeSettings} disabled={!isEditor} className="w-full">
+                Theme-Einstellungen speichern
+              </Button>
+              <p className="text-sm text-muted-foreground mt-2">
+                Änderungen werden sofort auf der gesamten Website sichtbar.
+              </p>
             </CardContent>
           </Card>
         </div>
