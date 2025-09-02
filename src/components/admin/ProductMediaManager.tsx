@@ -207,6 +207,16 @@ export function ProductMediaManager({
   };
 
   const handleMainImageChange = async (url: string) => {
+    // If clearing the image and it was stored in our storage, remove it
+    if (!url && mainImageUrl && mainImageUrl.includes("product-media")) {
+      try {
+        const path = mainImageUrl.split("/product-media/")[1];
+        await supabase.storage.from("product-media").remove([path]);
+      } catch (error) {
+        console.error("Error removing main image from storage:", error);
+      }
+    }
+
     onMainImageChange(url);
     
     // Update database immediately if product exists and we're clearing the image
