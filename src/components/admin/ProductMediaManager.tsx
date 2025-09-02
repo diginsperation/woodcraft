@@ -5,9 +5,10 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { FileUpload } from "./FileUpload";
-import { GripVertical, X, Plus } from "lucide-react";
+import { GripVertical, X, Plus, Trash2, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 
 interface ProductImage {
@@ -138,6 +139,43 @@ export function ProductMediaManager({
     toast.success("Bild gelöscht");
   };
 
+  const deleteAllGalleryImages = async () => {
+    if (galleryImages.length === 0) return;
+
+    const { error } = await supabase
+      .from("product_images")
+      .delete()
+      .eq("product_id", productId);
+
+    if (error) {
+      toast.error(`Fehler beim Löschen aller Bilder: ${error.message}`);
+      return;
+    }
+
+    // Remove files from storage
+    const storagePaths = galleryImages
+      .filter(img => img.url.includes("product-media"))
+      .map(img => img.url.split("/product-media/")[1]);
+
+    if (storagePaths.length > 0) {
+      try {
+        await supabase.storage.from("product-media").remove(storagePaths);
+      } catch (error) {
+        console.error("Error removing files from storage:", error);
+      }
+    }
+
+    setGalleryImages([]);
+    toast.success("Alle Galerie-Bilder gelöscht");
+  };
+
+  const resetVideo = async () => {
+    onVideoModeChange("none");
+    onVideoUrlChange("");
+    onYoutubeUrlChange("");
+    toast.success("Video-Einstellungen zurückgesetzt");
+  };
+
   const updateSortOrder = async () => {
     const updates = galleryImages.map((img, index) => ({
       id: img.id,
@@ -219,9 +257,35 @@ export function ProductMediaManager({
         <TabsContent value="gallery" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Plus className="w-5 h-5" />
-                Neues Galerie-Bild hinzufügen
+              <CardTitle className="text-lg flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Plus className="w-5 h-5" />
+                  Neues Galerie-Bild hinzufügen
+                </div>
+                {galleryImages.length > 0 && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" size="sm">
+                        <Trash2 className="w-4 h-4 mr-1" />
+                        Alle löschen
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Alle Galerie-Bilder löschen?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Diese Aktion löscht alle {galleryImages.length} Galerie-Bilder dauerhaft. Dies kann nicht rückgängig gemacht werden.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                        <AlertDialogAction onClick={deleteAllGalleryImages} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                          Alle löschen
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -275,13 +339,30 @@ export function ProductMediaManager({
                       <span className="text-sm text-muted-foreground min-w-[2rem]">
                         {index + 1}
                       </span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => image.id && deleteGalleryImage(image.id, image.url)}
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" size="sm">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Bild löschen?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Dieses Bild wird dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={() => image.id && deleteGalleryImage(image.id, image.url)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Löschen
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   ))}
                 </div>
@@ -293,7 +374,34 @@ export function ProductMediaManager({
         <TabsContent value="video" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Video-Einstellungen</CardTitle>
+              <CardTitle className="text-lg flex items-center justify-between">
+                Video-Einstellungen
+                {(videoMode !== "none" || videoUrl || youtubeUrl) && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <RotateCcw className="w-4 h-4 mr-1" />
+                        Zurücksetzen
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Video-Einstellungen zurücksetzen?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Alle Video-Einstellungen werden gelöscht und auf "Kein Video" zurückgesetzt. 
+                          Hochgeladene Video-Dateien werden ebenfalls entfernt.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                        <AlertDialogAction onClick={resetVideo}>
+                          Zurücksetzen
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -332,6 +440,7 @@ export function ProductMediaManager({
                     accept={{ "video/*": [".mp4", ".webm", ".mov"] }}
                     maxSize={100 * 1024 * 1024} // 100MB für Videos
                     placeholder="Video hier ablegen oder klicken zum Auswählen"
+                    deleteButtonText="Video löschen"
                   />
                 </div>
               )}

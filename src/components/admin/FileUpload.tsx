@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload, X, ExternalLink } from "lucide-react";
+import { Upload, X, ExternalLink, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface FileUploadProps {
@@ -18,6 +19,8 @@ interface FileUploadProps {
   allowUrlInput?: boolean;
   placeholder?: string;
   className?: string;
+  showDeleteConfirmation?: boolean;
+  deleteButtonText?: string;
 }
 
 export function FileUpload({
@@ -28,7 +31,9 @@ export function FileUpload({
   bucketPath,
   allowUrlInput = true,
   placeholder = "Datei hier ablegen oder klicken zum Auswählen",
-  className = ""
+  className = "",
+  showDeleteConfirmation = true,
+  deleteButtonText = "Löschen"
 }: FileUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -147,11 +152,14 @@ export function FileUpload({
       try {
         const path = currentUrl.split("/product-media/")[1];
         await supabase.storage.from("product-media").remove([path]);
+        toast.success("Datei aus Speicher entfernt");
       } catch (error) {
         console.error("Error removing file:", error);
+        toast.error("Fehler beim Entfernen der Datei");
       }
     }
     onUpload("");
+    toast.success("Datei erfolgreich gelöscht");
   };
 
   return (
@@ -173,14 +181,43 @@ export function FileUpload({
                   <p className="text-xs text-muted-foreground truncate">{currentUrl}</p>
                 </div>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={removeFile}
-                disabled={isUploading}
-              >
-                <X className="w-4 h-4" />
-              </Button>
+              {showDeleteConfirmation ? (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      disabled={isUploading}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span className="ml-1 hidden sm:inline">{deleteButtonText}</span>
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Datei löschen?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Diese Aktion kann nicht rückgängig gemacht werden. Die Datei wird dauerhaft gelöscht.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                      <AlertDialogAction onClick={removeFile} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        Löschen
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={removeFile}
+                  disabled={isUploading}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
