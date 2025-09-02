@@ -490,6 +490,7 @@ export function ProductMediaManager({
                     accept={{ "video/*": [".mp4", ".webm", ".mov"] }}
                     maxSize={100 * 1024 * 1024} // 100MB für Videos
                     placeholder="Video hier ablegen oder klicken zum Auswählen"
+                    showDeleteConfirmation={true}
                     deleteButtonText="Video löschen"
                   />
                 </div>
