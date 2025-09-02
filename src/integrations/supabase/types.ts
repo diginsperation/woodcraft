@@ -185,6 +185,44 @@ export type Database = {
         }
         Relationships: []
       }
+      product_images: {
+        Row: {
+          alt: string | null
+          created_at: string
+          id: string
+          product_id: string
+          sort_order: number
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          alt?: string | null
+          created_at?: string
+          id?: string
+          product_id: string
+          sort_order?: number
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          alt?: string | null
+          created_at?: string
+          id?: string
+          product_id?: string
+          sort_order?: number
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_images_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           active: boolean
@@ -196,11 +234,13 @@ export type Database = {
           home_featured_order: number | null
           id: string
           is_home_featured: boolean | null
+          main_image_url: string | null
           seo_description: string | null
           seo_title: string | null
           slug: string
           title: string
           updated_at: string
+          video_mode: string | null
           youtube_url: string | null
         }
         Insert: {
@@ -213,11 +253,13 @@ export type Database = {
           home_featured_order?: number | null
           id?: string
           is_home_featured?: boolean | null
+          main_image_url?: string | null
           seo_description?: string | null
           seo_title?: string | null
           slug: string
           title: string
           updated_at?: string
+          video_mode?: string | null
           youtube_url?: string | null
         }
         Update: {
@@ -230,11 +272,13 @@ export type Database = {
           home_featured_order?: number | null
           id?: string
           is_home_featured?: boolean | null
+          main_image_url?: string | null
           seo_description?: string | null
           seo_title?: string | null
           slug?: string
           title?: string
           updated_at?: string
+          video_mode?: string | null
           youtube_url?: string | null
         }
         Relationships: [
@@ -301,6 +345,66 @@ export type Database = {
           sort_order?: number
           updated_at?: string
           url?: string
+        }
+        Relationships: []
+      }
+      theme_settings: {
+        Row: {
+          accent_color: string | null
+          background_color: string | null
+          button_bg: string | null
+          button_hover: string | null
+          button_radius: number | null
+          button_text: string | null
+          created_at: string
+          font_body: string | null
+          font_button: string | null
+          font_heading: string | null
+          id: string
+          primary_color: string | null
+          secondary_color: string | null
+          section_padding_bottom: number | null
+          section_padding_top: number | null
+          text_color: string | null
+          updated_at: string
+        }
+        Insert: {
+          accent_color?: string | null
+          background_color?: string | null
+          button_bg?: string | null
+          button_hover?: string | null
+          button_radius?: number | null
+          button_text?: string | null
+          created_at?: string
+          font_body?: string | null
+          font_button?: string | null
+          font_heading?: string | null
+          id?: string
+          primary_color?: string | null
+          secondary_color?: string | null
+          section_padding_bottom?: number | null
+          section_padding_top?: number | null
+          text_color?: string | null
+          updated_at?: string
+        }
+        Update: {
+          accent_color?: string | null
+          background_color?: string | null
+          button_bg?: string | null
+          button_hover?: string | null
+          button_radius?: number | null
+          button_text?: string | null
+          created_at?: string
+          font_body?: string | null
+          font_button?: string | null
+          font_heading?: string | null
+          id?: string
+          primary_color?: string | null
+          secondary_color?: string | null
+          section_padding_bottom?: number | null
+          section_padding_top?: number | null
+          text_color?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
