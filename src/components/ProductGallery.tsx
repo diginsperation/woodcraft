@@ -147,23 +147,34 @@ export function ProductGallery({ productId, mainImageUrl, productTitle, videoMod
     }
 
     return (
-      <img
-        src={activeMedia.url}
-        alt={activeMedia.alt}
-        className="w-full h-full object-cover cursor-zoom-in"
-        loading={activeIndex === 0 ? "eager" : "lazy"}
-        onClick={() => setShowLightbox(true)}
-      />
+        <img
+          src={activeMedia.url}
+          alt={activeMedia.alt}
+          className="w-full h-full object-contain cursor-zoom-in"
+          loading={activeIndex === 0 ? "eager" : "lazy"}
+          onClick={() => setShowLightbox(true)}
+          sizes="(max-width: 640px) 400px, (max-width: 768px) 500px, (max-width: 1024px) 600px, (max-width: 1280px) 800px, 1000px"
+          srcSet={`${activeMedia.url}?w=400 400w, ${activeMedia.url}?w=500 500w, ${activeMedia.url}?w=600 600w, ${activeMedia.url}?w=800 800w, ${activeMedia.url}?w=1000 1000w, ${activeMedia.url}?w=1600 1600w`}
+        />
     );
+  };
+
+  // Adaptive thumbnail sizing based on count and viewport
+  const getThumbnailSize = () => {
+    const count = mediaItems.length;
+    if (count <= 4) return 'w-24 h-24 sm:w-20 sm:h-20'; // 100px desktop, 80px mobile
+    if (count <= 8) return 'w-20 h-20 sm:w-16 sm:h-16'; // 80px desktop, 64px mobile  
+    return 'w-16 h-16 sm:w-12 sm:h-12'; // 64px desktop, 48px mobile
   };
 
   const renderThumbnail = (item: typeof mediaItems[0], index: number) => {
     const isActive = index === activeIndex;
+    const sizeClasses = getThumbnailSize();
     
     return (
       <button
         key={`${item.type}-${index}`}
-        className={`relative w-24 h-24 overflow-hidden rounded-md border-2 transition-all duration-200 hover:opacity-90 ${
+        className={`relative ${sizeClasses} overflow-hidden rounded-md border-2 transition-all duration-200 hover:opacity-90 flex-shrink-0 ${
           isActive ? 'border-primary ring-2 ring-primary/20' : 'border-border'
         }`}
         onClick={() => handleThumbnailClick(index)}
@@ -243,8 +254,8 @@ export function ProductGallery({ productId, mainImageUrl, productTitle, videoMod
 
   return (
     <div className="space-y-4" onKeyDown={handleKeyDown} tabIndex={0}>
-      {/* Main Display Area */}
-      <div className="relative aspect-square w-full max-w-2xl mx-auto overflow-hidden rounded-lg border bg-background">
+      {/* Main Display Area - Amazon-like responsive sizing */}
+      <div className="relative aspect-square w-full min-w-[280px] max-w-[400px] sm:max-w-[500px] md:max-w-[600px] lg:max-w-[800px] xl:max-w-[1000px] mx-auto overflow-hidden rounded-lg border bg-background">
         {renderMainContent()}
         
         {/* Navigation Arrows (Desktop) */}
@@ -272,10 +283,12 @@ export function ProductGallery({ productId, mainImageUrl, productTitle, videoMod
         )}
       </div>
 
-      {/* Thumbnail Strip */}
+      {/* Thumbnail Strip - Responsive grid with adaptive sizing */}
       {mediaItems.length > 1 && (
-        <div className="flex gap-2 justify-center flex-wrap max-w-2xl mx-auto">
-          {mediaItems.map((item, index) => renderThumbnail(item, index))}
+        <div className="flex gap-1 sm:gap-2 justify-center overflow-x-auto px-2 pb-2">
+          <div className="flex gap-1 sm:gap-2 min-w-fit">
+            {mediaItems.map((item, index) => renderThumbnail(item, index))}
+          </div>
         </div>
       )}
 

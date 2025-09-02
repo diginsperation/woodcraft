@@ -345,9 +345,9 @@ export function ProductMediaManager({
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Das Hauptbild wird in Produktdetails und als Fallback für Karten verwendet. 
-                <strong> Empfohlene Größe: mindestens 800x600px</strong> für optimale Darstellung 
-                auf allen Geräten. Hochformat oder Querformat möglich.
+                Das Hauptbild wird in der Produktdetailansicht angezeigt und als Fallback für Karten verwendet. 
+                <strong> Empfohlene Größe: 1600x1600px (1:1 Format)</strong> für optimale Zoom-Qualität 
+                und perfekte Darstellung auf allen Geräten. Mindestens 800x800px erforderlich.
               </p>
               {mainImageUrl && (
                 <div className="relative">
@@ -414,9 +414,9 @@ export function ProductMediaManager({
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Galerie-Bilder werden in der Produktdetailansicht und Lightbox angezeigt. 
-                <strong> Empfohlene Größe: mindestens 800x600px</strong> für beste Qualität. 
-                Verschiedene Formate möglich - sie werden automatisch optimiert dargestellt.
+                Galerie-Bilder werden als Thumbnails und in der Lightbox angezeigt. 
+                <strong> Empfohlene Größe: mindestens 800x800px (1:1 Format)</strong> für optimale Qualität. 
+                Amazon-Standard mit quadratischen Bildern für konsistente Darstellung. Automatische Größenanpassung der Thumbnails je nach Anzahl.
               </p>
               <div>
                 <Label htmlFor="image-alt">Alt-Text für das neue Bild</Label>
@@ -608,7 +608,8 @@ export function ProductMediaManager({
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
                 Laden Sie ein spezielles Bild hoch, das optimal für Produktkarten formatiert ist. 
-                Empfohlene Größe: 380x285px (4:3 Format).
+                <strong> Empfohlene Größe: 380x285px (4:3 Format)</strong> für perfekte Kartendarstellung.
+                Dieses Bild wird in allen Produktlisten verwendet und sollte das Produkt optimal repräsentieren.
               </p>
               
               {cardImageUrl && (
