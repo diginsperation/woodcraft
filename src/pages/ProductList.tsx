@@ -20,7 +20,7 @@ export default function ProductList() {
       .then(({ data }) => setDbCategories(data ?? []));
     supabase.from("products").select(`
       id,slug,title,description,base_price,active,category_id,main_image_url,card_image_mode,card_image_image_id,
-      product_images (*)
+      product_images!product_images_product_id_fkey (*)
     `).eq("active", true)
       .then(({ data }) => setDbProducts(data ?? []));
   }, []);
