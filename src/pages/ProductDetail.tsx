@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { GalleryLightbox } from "@/components/GalleryLightbox";
+import { ProductGallery } from "@/components/ProductGallery";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { strings } from "@/content/strings.de";
@@ -61,34 +61,6 @@ const schema = z
 
 type FormData = z.infer<typeof schema>;
 
-function toYouTubeEmbed(url?: string | null): string {
-  if (!url) return '';
-  try {
-    const u = new URL(url);
-    const host = u.hostname.replace(/^www\./, '');
-    let id = '';
-    if (host === 'youtu.be') {
-      id = u.pathname.slice(1);
-    } else if (host === 'youtube.com' || host === 'm.youtube.com') {
-      if (u.pathname === '/watch') {
-        id = u.searchParams.get('v') || '';
-      } else if (u.pathname.startsWith('/shorts/')) {
-        id = u.pathname.split('/')[2] || '';
-      } else if (u.pathname.startsWith('/embed/')) {
-        return `https://www.youtube-nocookie.com${u.pathname}${u.search}`;
-      }
-    } else if (host === 'youtube-nocookie.com' && u.pathname.startsWith('/embed/')) {
-      return url;
-    }
-    if (!id) return '';
-    const params = new URLSearchParams(u.search);
-    if (!params.has('rel')) params.set('rel', '0');
-    if (!params.has('modestbranding')) params.set('modestbranding', '1');
-    return `https://www.youtube-nocookie.com/embed/${id}?${params.toString()}`;
-  } catch {
-    return '';
-  }
-}
 
 export default function ProductDetail() {
   const { slug } = useParams();
@@ -218,38 +190,19 @@ export default function ProductDetail() {
   const seoDescription = mapped.seoDescription || mapped.teaser;
   const canonicalPath = `/product/${mapped.slug}`;
   
-  // Handle video embedding
-  let videoContent = null;
-  if (mapped.videoMode === "youtube" && mapped.youtubeUrl) {
-    const youtubeSrc = toYouTubeEmbed(mapped.youtubeUrl) || "https://www.youtube.com/embed/dQw4w9WgXcQ";
-    videoContent = (
-      <iframe
-        title="product video"
-        className="w-full h-full"
-        src={youtubeSrc}
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen
-      />
-    );
-  } else if (mapped.videoMode === "upload" && mapped.youtubeUrl) {
-    videoContent = (
-      <video
-        className="w-full h-full"
-        controls
-        preload="metadata"
-      >
-        <source src={mapped.youtubeUrl} type="video/mp4" />
-        Your browser does not support the video tag.
-      </video>
-    );
-  }
 
   return (
     <div className="container py-10">
       <Seo title={seoTitle} description={seoDescription} canonicalPath={canonicalPath} />
       <div className="grid md:grid-cols-2 gap-8">
         <div>
-          <GalleryLightbox images={mapped.images} alt={mapped.title} />
+          <ProductGallery
+            productId={mapped.id}
+            mainImageUrl={(dbProduct as any).main_image_url}
+            productTitle={mapped.title}
+            videoMode={mapped.videoMode}
+            videoUrl={mapped.youtubeUrl}
+          />
         </div>
         <div>
           <h1 className="font-playfair text-3xl md:text-4xl">{mapped.title}</h1>
@@ -329,8 +282,8 @@ export default function ProductDetail() {
         </div>
       </div>
 
-      <section className="mt-12 grid md:grid-cols-3 gap-8" aria-labelledby="details">
-        <div className="md:col-span-2">
+      <section className="mt-12" aria-labelledby="details">
+        <div>
           <h2 id="details" className="font-playfair text-2xl mb-4">{strings.product.description}</h2>
           <article className="prose max-w-none">
             <h3>{strings.product.story}</h3>
@@ -341,13 +294,6 @@ export default function ProductDetail() {
             <p>{mapped.care}</p>
           </article>
         </div>
-        {videoContent && (
-          <div>
-            <div className="aspect-video rounded-lg overflow-hidden border bg-black/5">
-              {videoContent}
-            </div>
-          </div>
-        )}
       </section>
     </div>
   );
