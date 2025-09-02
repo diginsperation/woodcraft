@@ -170,10 +170,58 @@ export function ProductMediaManager({
   };
 
   const resetVideo = async () => {
+    // Remove uploaded video file from storage if exists
+    if (videoMode === "upload" && videoUrl && videoUrl.includes("product-media")) {
+      try {
+        const path = videoUrl.split("/product-media/")[1];
+        await supabase.storage.from("product-media").remove([path]);
+        toast.success("Video-Datei aus Speicher entfernt");
+      } catch (error) {
+        console.error("Error removing video file:", error);
+      }
+    }
+
+    // Update local state
     onVideoModeChange("none");
     onVideoUrlChange("");
     onYoutubeUrlChange("");
+
+    // Update database if product exists
+    if (productId) {
+      const { error } = await supabase
+        .from("products")
+        .update({
+          video_mode: "none",
+          video_url: null,
+          youtube_url: null
+        })
+        .eq("id", productId);
+
+      if (error) {
+        toast.error(`Fehler beim Zurücksetzen: ${error.message}`);
+        return;
+      }
+    }
+
     toast.success("Video-Einstellungen zurückgesetzt");
+  };
+
+  const handleMainImageChange = async (url: string) => {
+    onMainImageChange(url);
+    
+    // Update database immediately if product exists and we're clearing the image
+    if (productId && !url) {
+      const { error } = await supabase
+        .from("products")
+        .update({ main_image_url: null })
+        .eq("id", productId);
+
+      if (error) {
+        toast.error(`Fehler beim Aktualisieren: ${error.message}`);
+        return;
+      }
+      toast.success("Hauptbild entfernt");
+    }
   };
 
   const updateSortOrder = async () => {
@@ -245,10 +293,12 @@ export function ProductMediaManager({
             </CardHeader>
             <CardContent>
               <FileUpload
-                onUpload={onMainImageChange}
+                onUpload={handleMainImageChange}
                 currentUrl={mainImageUrl}
                 bucketPath={productId ? `product/${productId}/main` : "temp/main"}
                 placeholder="Hauptbild hier ablegen oder klicken zum Auswählen"
+                showDeleteConfirmation={true}
+                deleteButtonText="Hauptbild löschen"
               />
             </CardContent>
           </Card>
