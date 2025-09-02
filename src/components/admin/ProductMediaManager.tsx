@@ -344,6 +344,11 @@ export function ProductMediaManager({
               <CardTitle className="text-lg">Hauptbild (Pflicht)</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Das Hauptbild wird in Produktdetails und als Fallback für Karten verwendet. 
+                <strong> Empfohlene Größe: mindestens 800x600px</strong> für optimale Darstellung 
+                auf allen Geräten. Hochformat oder Querformat möglich.
+              </p>
               {mainImageUrl && (
                 <div className="relative">
                   <img 
@@ -408,6 +413,11 @@ export function ProductMediaManager({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Galerie-Bilder werden in der Produktdetailansicht und Lightbox angezeigt. 
+                <strong> Empfohlene Größe: mindestens 800x600px</strong> für beste Qualität. 
+                Verschiedene Formate möglich - sie werden automatisch optimiert dargestellt.
+              </p>
               <div>
                 <Label htmlFor="image-alt">Alt-Text für das neue Bild</Label>
                 <Input
