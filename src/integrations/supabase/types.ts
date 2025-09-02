@@ -229,6 +229,7 @@ export type Database = {
           base_price: number
           card_image_image_id: string | null
           card_image_mode: string | null
+          card_image_url: string | null
           category_id: string
           created_at: string
           description: string | null
@@ -251,6 +252,7 @@ export type Database = {
           base_price: number
           card_image_image_id?: string | null
           card_image_mode?: string | null
+          card_image_url?: string | null
           category_id: string
           created_at?: string
           description?: string | null
@@ -273,6 +275,7 @@ export type Database = {
           base_price?: number
           card_image_image_id?: string | null
           card_image_mode?: string | null
+          card_image_url?: string | null
           category_id?: string
           created_at?: string
           description?: string | null

@@ -23,7 +23,12 @@ type ProductWithImages = Database['public']['Tables']['products']['Row'] & {
  */
 
 export function getCardImage(product: ProductWithImages): string | null {
-  // Handle different card image modes
+  // Priority 1: Dedicated card image
+  if ('card_image_url' in product && product.card_image_url) {
+    return product.card_image_url;
+  }
+
+  // Priority 2: Handle different card image modes
   switch (product.card_image_mode) {
     case 'main':
       return product.main_image_url || null;
@@ -45,7 +50,7 @@ export function getCardImage(product: ProductWithImages): string | null {
       break;
   }
 
-  // Auto mode logic: main_image_url, then first gallery image by sort_order
+  // Priority 3: Auto mode logic - main_image_url, then first gallery image by sort_order
   if (product.main_image_url) {
     return product.main_image_url;
   }

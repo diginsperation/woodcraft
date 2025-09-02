@@ -84,6 +84,7 @@ const [prodForm, setProdForm] = useState<any>({
   youtube_url: "",
   card_image_mode: "auto",
   card_image_image_id: "",
+  card_image_url: "",
   seo_title: "",
   seo_description: "",
   details_story: "",
@@ -119,7 +120,7 @@ const [prodForm, setProdForm] = useState<any>({
   const loadCatalog = async () => {
     const [{ data: cats }, { data: prods }] = await Promise.all([
       supabase.from("categories").select("id, name, slug, description, sort_order").order("sort_order", { ascending: true }),
-      supabase.from("products").select("id, title, slug, category_id, description, base_price, active, main_image_url, video_mode, video_url, youtube_url, card_image_mode, card_image_image_id, seo_title, seo_description, details, is_home_featured").order("created_at", { ascending: false }),
+      supabase.from("products").select("id, title, slug, category_id, description, base_price, active, main_image_url, video_mode, video_url, youtube_url, card_image_mode, card_image_image_id, card_image_url, seo_title, seo_description, details, is_home_featured").order("created_at", { ascending: false }),
     ]);
     setCategories(cats ?? []);
     setProducts(prods ?? []);
@@ -229,6 +230,7 @@ const [prodForm, setProdForm] = useState<any>({
       youtube_url: prodForm.youtube_url || null,
       card_image_mode: prodForm.card_image_mode || "auto",
       card_image_image_id: prodForm.card_image_image_id || null,
+      card_image_url: prodForm.card_image_url || null,
       category_id: prodForm.category_id,
       seo_title: prodForm.seo_title || null,
       seo_description: prodForm.seo_description || null,
@@ -259,6 +261,7 @@ const [prodForm, setProdForm] = useState<any>({
       youtube_url: "",
       card_image_mode: "auto",
       card_image_image_id: "",
+      card_image_url: "",
       seo_title: "",
       seo_description: "",
       details_story: "",
@@ -287,6 +290,7 @@ const [prodForm, setProdForm] = useState<any>({
       youtube_url: p.youtube_url ?? "",
       card_image_mode: p.card_image_mode ?? "auto",
       card_image_image_id: p.card_image_image_id ?? "",
+      card_image_url: p.card_image_url ?? "",
       seo_title: p.seo_title ?? "",
       seo_description: p.seo_description ?? "",
       details_story: details.story ?? "",
@@ -981,6 +985,8 @@ const [prodForm, setProdForm] = useState<any>({
                     onCardImageModeChange={(mode) => setProdForm({ ...prodForm, card_image_mode: mode })}
                     cardImageImageId={prodForm.card_image_image_id}
                     onCardImageImageIdChange={(id) => setProdForm({ ...prodForm, card_image_image_id: id })}
+                    cardImageUrl={prodForm.card_image_url}
+                    onCardImageUrlChange={(url) => setProdForm({ ...prodForm, card_image_url: url })}
                   />
                 </CardContent>
               </Card>

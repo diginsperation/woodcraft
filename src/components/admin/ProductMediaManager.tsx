@@ -33,6 +33,8 @@ interface ProductMediaManagerProps {
   onCardImageModeChange?: (mode: string) => void;
   cardImageImageId?: string;
   onCardImageImageIdChange?: (id: string) => void;
+  cardImageUrl?: string;
+  onCardImageUrlChange?: (url: string) => void;
 }
 
 export function ProductMediaManager({
@@ -48,7 +50,9 @@ export function ProductMediaManager({
   cardImageMode = "auto",
   onCardImageModeChange,
   cardImageImageId,
-  onCardImageImageIdChange
+  onCardImageImageIdChange,
+  cardImageUrl,
+  onCardImageUrlChange
 }: ProductMediaManagerProps) {
   const [galleryImages, setGalleryImages] = useState<ProductImage[]>([]);
   const [newImageAlt, setNewImageAlt] = useState("");
@@ -294,6 +298,34 @@ export function ProductMediaManager({
       return;
     }
     onYoutubeUrlChange(url);
+  };
+
+  const handleCardImageChange = async (url: string) => {
+    // If clearing the image and it was stored in our storage, remove it
+    if (!url && cardImageUrl && cardImageUrl.includes("product-media")) {
+      try {
+        const path = cardImageUrl.split("/product-media/")[1];
+        await supabase.storage.from("product-media").remove([path]);
+      } catch (error) {
+        console.error("Error removing card image from storage:", error);
+      }
+    }
+
+    onCardImageUrlChange?.(url);
+    
+    // Update database immediately if product exists and we're clearing the image
+    if (productId && !url) {
+      const { error } = await supabase
+        .from("products")
+        .update({ card_image_url: null })
+        .eq("id", productId);
+
+      if (error) {
+        toast.error(`Fehler beim Aktualisieren: ${error.message}`);
+        return;
+      }
+      toast.success("Karten-Bild entfernt");
+    }
   };
 
   return (
@@ -558,13 +590,60 @@ export function ProductMediaManager({
         </TabsContent>
 
         <TabsContent value="card-image" className="space-y-4">
+          {/* Dedicated Card Image Section */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Bild für Produktkarten</CardTitle>
+              <CardTitle className="text-lg">Separates Karten-Bild (Empfohlen)</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Laden Sie ein spezielles Bild hoch, das optimal für Produktkarten formatiert ist. 
+                Empfohlene Größe: 380x285px (4:3 Format).
+              </p>
+              
+              {cardImageUrl && (
+                <div className="relative max-w-xs">
+                  <div className="aspect-[4/3] bg-muted/50 rounded-lg overflow-hidden border">
+                    <img 
+                      src={cardImageUrl} 
+                      alt="Karten-Bild Vorschau" 
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="absolute top-2 right-2"
+                    onClick={() => handleCardImageChange("")}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+              
+              <FileUpload
+                onUpload={handleCardImageChange}
+                currentUrl={cardImageUrl || ""}
+                bucketPath={productId ? `product/${productId}/card` : "temp/card"}
+                placeholder="Karten-Bild hier ablegen oder klicken zum Auswählen (380x285px empfohlen)"
+                showDeleteConfirmation={true}
+                deleteButtonText="Karten-Bild löschen"
+              />
+            </CardContent>
+          </Card>
+
+          {/* Fallback Options */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Fallback-Optionen</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Diese Einstellungen werden nur verwendet, wenn kein separates Karten-Bild hochgeladen wurde.
+              </p>
+              
               <div>
-                <Label>Bildmodus für Karten</Label>
+                <Label>Bildmodus für Karten (Fallback)</Label>
                 <RadioGroup 
                   value={cardImageMode} 
                   onValueChange={(value) => onCardImageModeChange?.(value)}
@@ -623,46 +702,55 @@ export function ProductMediaManager({
                   Keine Galerie-Bilder verfügbar. Fügen Sie zunächst Bilder zur Galerie hinzu.
                 </div>
               )}
+            </CardContent>
+          </Card>
 
-              {/* Card Preview */}
-              <div>
-                <Label>Vorschau der Produktkarte</Label>
-                <div className="mt-2 max-w-xs">
-                  <div className="rounded-lg border bg-card overflow-hidden">
-                    <div className="aspect-[4/3] bg-muted">
-                      {(() => {
-                        let previewImageSrc = null;
-                        
-                        if (cardImageMode === "main") {
-                          previewImageSrc = mainImageUrl;
-                        } else if (cardImageMode === "gallery" && cardImageImageId) {
-                          const selectedImage = galleryImages.find(img => img.id === cardImageImageId);
-                          previewImageSrc = selectedImage?.url || null;
-                        } else {
-                          // auto mode
-                          previewImageSrc = mainImageUrl || galleryImages[0]?.url || null;
-                        }
+          {/* Card Preview */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Vorschau der Produktkarte</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="max-w-xs">
+                <div className="rounded-lg border bg-card overflow-hidden">
+                  <div className="aspect-[4/3] bg-muted/50">
+                    {(() => {
+                      let previewImageSrc = null;
+                      
+                      // Priority 1: Dedicated card image
+                      if (cardImageUrl) {
+                        previewImageSrc = cardImageUrl;
+                      }
+                      // Priority 2: Fallback logic
+                      else if (cardImageMode === "main") {
+                        previewImageSrc = mainImageUrl;
+                      } else if (cardImageMode === "gallery" && cardImageImageId) {
+                        const selectedImage = galleryImages.find(img => img.id === cardImageImageId);
+                        previewImageSrc = selectedImage?.url || null;
+                      } else {
+                        // auto mode
+                        previewImageSrc = mainImageUrl || galleryImages[0]?.url || null;
+                      }
 
-                        return previewImageSrc ? (
-                          <img 
-                            src={previewImageSrc} 
-                            alt="Karten-Vorschau"
-                            className="w-full h-full object-cover object-center" 
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
-                            Kein Bild verfügbar
-                          </div>
-                        );
-                      })()}
-                    </div>
-                    <div className="p-3">
-                      <h3 className="font-playfair text-lg">Produktname</h3>
-                      <p className="text-muted-foreground text-sm mt-1">Produkt-Beschreibung...</p>
-                      <div className="mt-2 flex items-center justify-between">
-                        <span className="font-medium">€ 99,00</span>
-                        <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">Details</span>
-                      </div>
+                      return previewImageSrc ? (
+                        <img 
+                          src={previewImageSrc} 
+                          alt="Karten-Vorschau"
+                          className="w-full h-full object-contain" 
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
+                          Kein Bild verfügbar
+                        </div>
+                      );
+                    })()}
+                  </div>
+                  <div className="p-3">
+                    <h3 className="font-playfair text-lg">Produktname</h3>
+                    <p className="text-muted-foreground text-sm mt-1">Produkt-Beschreibung...</p>
+                    <div className="mt-2 flex items-center justify-between">
+                      <span className="font-medium">€ 99,00</span>
+                      <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">Details</span>
                     </div>
                   </div>
                 </div>
