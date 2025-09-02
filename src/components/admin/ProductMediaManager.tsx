@@ -510,14 +510,35 @@ export function ProductMediaManager({
               {videoMode === "upload" && (
                 <div>
                   <Label>Video-Datei hochladen</Label>
+                  {videoUrl && (
+                    <div className="mb-4">
+                      <video 
+                        src={videoUrl} 
+                        controls 
+                        className="w-full max-w-md h-48 object-cover rounded-lg border"
+                      >
+                        Ihr Browser unterstützt das Video-Element nicht.
+                      </video>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="mt-2"
+                        onClick={() => onVideoUrlChange("")}
+                      >
+                        <X className="w-4 h-4 mr-1" />
+                        Video entfernen
+                      </Button>
+                    </div>
+                  )}
                   <FileUpload
+                    key={`video-upload-${videoUrl || 'empty'}`} // Force re-render when videoUrl changes
                     onUpload={onVideoUrlChange}
                     currentUrl={videoUrl}
                     bucketPath={productId ? `product/${productId}/video` : "temp/video"}
                     accept={{ "video/*": [".mp4", ".webm", ".mov"] }}
                     maxSize={100 * 1024 * 1024} // 100MB für Videos
                     placeholder="Video hier ablegen oder klicken zum Auswählen"
-                    showDeleteConfirmation={true}
+                    showDeleteConfirmation={false} // We have our own delete button above
                     deleteButtonText="Video löschen"
                   />
                 </div>
