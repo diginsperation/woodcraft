@@ -24,14 +24,15 @@ export function ProductCard({ product }: { product: Product | ProductWithImages 
   
   return (
     <article className="rounded-lg border bg-card overflow-hidden hover:shadow-md transition-shadow">
-      <div className="aspect-[4/3] bg-muted">
+      <div className="aspect-[4/3] bg-muted/50 border border-border/20">
         {cardImageSrc ? (
           <img 
             src={cardImageSrc} 
             alt={cardImageAlt} 
-            className="w-full h-full object-cover object-center" 
+            className="w-full h-full object-contain p-2" 
             loading="lazy"
-            sizes="(max-width: 640px) 280px, (max-width: 1024px) 320px, 380px"
+            sizes="(max-width: 640px) 560px, (max-width: 1024px) 640px, 760px"
+            srcSet={`${cardImageSrc}?w=280 280w, ${cardImageSrc}?w=320 320w, ${cardImageSrc}?w=380 380w, ${cardImageSrc}?w=560 560w, ${cardImageSrc}?w=640 640w, ${cardImageSrc}?w=760 760w`}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-muted-foreground">
