@@ -112,7 +112,7 @@ export default function ProductDetail() {
     }
     supabase
       .from("products")
-      .select("id,slug,title,description,base_price,active,youtube_url,seo_title,seo_description,details")
+      .select("id,slug,title,description,base_price,active,main_image_url,video_mode,video_url,youtube_url,seo_title,seo_description,details")
       .eq("slug", slug)
       .eq("active", true)
       .maybeSingle()
@@ -129,7 +129,34 @@ export default function ProductDetail() {
   const mapped = useMemo(() => {
     if (!dbProduct) return null;
     const details: any = (dbProduct as any).details || {};
-    const images: string[] = Array.isArray(details.images) && details.images.length ? details.images : [wood1, woodDetail, woodShop];
+    
+    // Build gallery images array
+    let images: string[] = [];
+    
+    // Add main image if available
+    if ((dbProduct as any).main_image_url) {
+      images.push((dbProduct as any).main_image_url);
+    }
+    
+    // Add legacy images from details
+    if (Array.isArray(details.images) && details.images.length) {
+      images.push(...details.images);
+    }
+    
+    // Fallback to default images if none available
+    if (images.length === 0) {
+      images = [wood1, woodDetail, woodShop];
+    }
+    
+    // Handle video
+    let videoUrl = null;
+    const videoMode = (dbProduct as any).video_mode || "none";
+    if (videoMode === "youtube" && (dbProduct as any).youtube_url) {
+      videoUrl = (dbProduct as any).youtube_url;
+    } else if (videoMode === "upload" && (dbProduct as any).video_url) {
+      videoUrl = (dbProduct as any).video_url;
+    }
+    
     return {
       id: dbProduct.id,
       slug: dbProduct.slug,
@@ -142,7 +169,8 @@ export default function ProductDetail() {
       care: details.care ?? "",
       seoTitle: (dbProduct.seo_title as string | null) ?? null,
       seoDescription: (dbProduct.seo_description as string | null) ?? null,
-      youtubeUrl: (dbProduct.youtube_url as string | null) ?? null,
+      youtubeUrl: videoUrl,
+      videoMode,
     };
   }, [dbProduct]);
 
@@ -189,7 +217,32 @@ export default function ProductDetail() {
   const seoTitle = mapped.seoTitle || `${mapped.title} – ${strings.brandName}`;
   const seoDescription = mapped.seoDescription || mapped.teaser;
   const canonicalPath = `/product/${mapped.slug}`;
-  const youtubeSrc = toYouTubeEmbed(mapped.youtubeUrl) || "https://www.youtube.com/embed/dQw4w9WgXcQ";
+  
+  // Handle video embedding
+  let videoContent = null;
+  if (mapped.videoMode === "youtube" && mapped.youtubeUrl) {
+    const youtubeSrc = toYouTubeEmbed(mapped.youtubeUrl) || "https://www.youtube.com/embed/dQw4w9WgXcQ";
+    videoContent = (
+      <iframe
+        title="product video"
+        className="w-full h-full"
+        src={youtubeSrc}
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+      />
+    );
+  } else if (mapped.videoMode === "upload" && mapped.youtubeUrl) {
+    videoContent = (
+      <video
+        className="w-full h-full"
+        controls
+        preload="metadata"
+      >
+        <source src={mapped.youtubeUrl} type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+    );
+  }
 
   return (
     <div className="container py-10">
@@ -288,17 +341,13 @@ export default function ProductDetail() {
             <p>{mapped.care}</p>
           </article>
         </div>
-        <div>
-          <div className="aspect-video rounded-lg overflow-hidden border bg-black/5">
-            <iframe
-              title="product video"
-              className="w-full h-full"
-              src={youtubeSrc}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
+        {videoContent && (
+          <div>
+            <div className="aspect-video rounded-lg overflow-hidden border bg-black/5">
+              {videoContent}
+            </div>
           </div>
-        </div>
+        )}
       </section>
     </div>
   );

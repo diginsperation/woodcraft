@@ -7,7 +7,7 @@ export function ProductCard({ product }: { product: Product }) {
   
   return (
     <article className="rounded-lg border bg-card overflow-hidden hover:shadow-md transition-shadow">
-      <img src={product.images[0]} alt={product.title + " image"} className="w-full h-48 object-cover" loading="lazy" />
+      <img src={product.images[0] || product.main_image_url} alt={product.title + " image"} className="w-full h-48 object-cover" loading="lazy" />
       <div className="p-4">
         <h3 className="font-playfair text-xl">{product.title}</h3>
         <p className="text-muted-foreground text-sm mt-1">{product.teaser}</p>

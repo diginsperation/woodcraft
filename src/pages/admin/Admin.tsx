@@ -9,6 +9,8 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Seo } from "@/components/Seo";
+import { ProductMediaManager } from "@/components/admin/ProductMediaManager";
+import { AdminSettings } from "@/components/admin/AdminSettings";
 
 // Admin roles helper
 type AppRole = "admin" | "editor" | "viewer";
@@ -76,6 +78,9 @@ const [prodForm, setProdForm] = useState<any>({
   base_price: 0,
   active: true,
   is_home_featured: false,
+  main_image_url: "",
+  video_mode: "none",
+  video_url: "",
   youtube_url: "",
   seo_title: "",
   seo_description: "",
@@ -112,7 +117,7 @@ const [prodForm, setProdForm] = useState<any>({
   const loadCatalog = async () => {
     const [{ data: cats }, { data: prods }] = await Promise.all([
       supabase.from("categories").select("id, name, slug, description, sort_order").order("sort_order", { ascending: true }),
-      supabase.from("products").select("id, title, slug, category_id, description, base_price, active, youtube_url, seo_title, seo_description, details, is_home_featured").order("created_at", { ascending: false }),
+      supabase.from("products").select("id, title, slug, category_id, description, base_price, active, main_image_url, video_mode, video_url, youtube_url, seo_title, seo_description, details, is_home_featured").order("created_at", { ascending: false }),
     ]);
     setCategories(cats ?? []);
     setProducts(prods ?? []);
@@ -216,6 +221,9 @@ const [prodForm, setProdForm] = useState<any>({
       base_price: Number(prodForm.base_price) || 0,
       active: !!prodForm.active,
       is_home_featured: !!prodForm.is_home_featured,
+      main_image_url: prodForm.main_image_url || null,
+      video_mode: prodForm.video_mode || "none",
+      video_url: prodForm.video_url || null,
       youtube_url: prodForm.youtube_url || null,
       category_id: prodForm.category_id,
       seo_title: prodForm.seo_title || null,
@@ -241,6 +249,9 @@ const [prodForm, setProdForm] = useState<any>({
       base_price: 0,
       active: true,
       is_home_featured: false,
+      main_image_url: "",
+      video_mode: "none",
+      video_url: "",
       youtube_url: "",
       seo_title: "",
       seo_description: "",
@@ -264,6 +275,9 @@ const [prodForm, setProdForm] = useState<any>({
       base_price: p.base_price,
       active: p.active,
       is_home_featured: p.is_home_featured ?? false,
+      main_image_url: p.main_image_url ?? "",
+      video_mode: p.video_mode ?? "none",
+      video_url: p.video_url ?? "",
       youtube_url: p.youtube_url ?? "",
       seo_title: p.seo_title ?? "",
       seo_description: p.seo_description ?? "",
@@ -501,6 +515,7 @@ const [prodForm, setProdForm] = useState<any>({
           <TabsTrigger value="homepage">Startseite</TabsTrigger>
           <TabsTrigger value="categories">Kategorien</TabsTrigger>
           <TabsTrigger value="products">Produkte</TabsTrigger>
+          <TabsTrigger value="settings" disabled={!isAdmin}>Einstellungen</TabsTrigger>
           <TabsTrigger value="users" disabled={!canManageUsers}>Benutzer</TabsTrigger>
         </TabsList>
 
@@ -897,75 +912,109 @@ const [prodForm, setProdForm] = useState<any>({
 
         <TabsContent value="products" className="mt-6">
           <div className="grid md:grid-cols-2 gap-6">
-            <Card>
-              <CardContent className="pt-6 space-y-3">
-                <h2 className="font-medium">{prodForm.id ? "Produkt bearbeiten" : "Neues Produkt"}</h2>
-                <div>
-                  <Label>Titel</Label>
-                  <Input value={prodForm.title} onChange={(e) => setProdForm({ ...prodForm, title: e.target.value })} />
-                </div>
-                <div>
-                  <Label>Slug (optional)</Label>
-                  <Input value={prodForm.slug ?? ""} onChange={(e) => setProdForm({ ...prodForm, slug: e.target.value })} />
-                </div>
-                <div>
-                  <Label>Kategorie</Label>
-                  <select className="w-full h-10 rounded-md border bg-background px-3" value={prodForm.category_id} onChange={(e) => setProdForm({ ...prodForm, category_id: e.target.value })}>
-                    <option value="">– auswählen –</option>
-                    {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <Label>Preis (EUR)</Label>
-                  <Input type="number" step="0.01" value={prodForm.base_price} onChange={(e) => setProdForm({ ...prodForm, base_price: e.target.value })} />
-                </div>
-                <div>
-                  <Label>Beschreibung (Teaser)</Label>
-                  <Textarea value={prodForm.description} onChange={(e) => setProdForm({ ...prodForm, description: e.target.value })} />
-                </div>
-                <Separator className="my-2" />
-                <h3 className="font-medium">SEO</h3>
-                <div>
-                  <Label>SEO Titel</Label>
-                  <Input value={prodForm.seo_title} onChange={(e) => setProdForm({ ...prodForm, seo_title: e.target.value })} />
-                </div>
-                <div>
-                  <Label>SEO Beschreibung</Label>
-                  <Textarea value={prodForm.seo_description} onChange={(e) => setProdForm({ ...prodForm, seo_description: e.target.value })} />
-                </div>
-                <Separator className="my-2" />
-                <h3 className="font-medium">Details</h3>
-                <div>
-                  <Label>Story</Label>
-                  <Textarea value={prodForm.details_story} onChange={(e) => setProdForm({ ...prodForm, details_story: e.target.value })} />
-                </div>
-                <div>
-                  <Label>Material</Label>
-                  <Textarea value={prodForm.details_material} onChange={(e) => setProdForm({ ...prodForm, details_material: e.target.value })} />
-                </div>
-                <div>
-                  <Label>Pflege</Label>
-                  <Textarea value={prodForm.details_care} onChange={(e) => setProdForm({ ...prodForm, details_care: e.target.value })} />
-                </div>
-                <div>
-                  <Label>Bilder (eine URL pro Zeile)</Label>
-                  <Textarea placeholder="https://...jpg" value={prodForm.details_imagesText} onChange={(e) => setProdForm({ ...prodForm, details_imagesText: e.target.value })} />
-                </div>
-                <div>
-                  <Label>YouTube URL</Label>
-                  <Input placeholder="https://www.youtube.com/embed/..." value={prodForm.youtube_url} onChange={(e) => setProdForm({ ...prodForm, youtube_url: e.target.value })} />
-                </div>
-                <div className="flex items-center gap-2">
-                  <input id="active" type="checkbox" checked={!!prodForm.active} onChange={(e) => setProdForm({ ...prodForm, active: e.target.checked })} />
-                  <Label htmlFor="active">Aktiv</Label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <input id="is_home_featured" type="checkbox" checked={!!prodForm.is_home_featured} onChange={(e) => setProdForm({ ...prodForm, is_home_featured: e.target.checked })} />
-                  <Label htmlFor="is_home_featured">Als Bestseller auf Startseite anzeigen</Label>
-                </div>
-                <Button onClick={saveProduct} disabled={!isEditor || !prodForm.category_id}>Speichern</Button>
-              </CardContent>
-            </Card>
+            <div className="space-y-6">
+              <Card>
+                <CardContent className="pt-6 space-y-4">
+                  <h2 className="font-medium">{prodForm.id ? "Produkt bearbeiten" : "Neues Produkt"}</h2>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <Label>Titel</Label>
+                      <Input value={prodForm.title} onChange={(e) => setProdForm({ ...prodForm, title: e.target.value })} />
+                    </div>
+                    <div>
+                      <Label>Slug (optional)</Label>
+                      <Input value={prodForm.slug ?? ""} onChange={(e) => setProdForm({ ...prodForm, slug: e.target.value })} />
+                    </div>
+                    <div>
+                      <Label>Kategorie</Label>
+                      <select className="w-full h-10 rounded-md border bg-background px-3" value={prodForm.category_id} onChange={(e) => setProdForm({ ...prodForm, category_id: e.target.value })}>
+                        <option value="">– auswählen –</option>
+                        {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <Label>Preis (EUR)</Label>
+                      <Input type="number" step="0.01" value={prodForm.base_price} onChange={(e) => setProdForm({ ...prodForm, base_price: e.target.value })} />
+                    </div>
+                    <div>
+                      <Label>Beschreibung (Teaser)</Label>
+                      <Textarea value={prodForm.description} onChange={(e) => setProdForm({ ...prodForm, description: e.target.value })} />
+                    </div>
+                    
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <input id="active" type="checkbox" checked={!!prodForm.active} onChange={(e) => setProdForm({ ...prodForm, active: e.target.checked })} />
+                        <Label htmlFor="active">Aktiv</Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input id="is_home_featured" type="checkbox" checked={!!prodForm.is_home_featured} onChange={(e) => setProdForm({ ...prodForm, is_home_featured: e.target.checked })} />
+                        <Label htmlFor="is_home_featured">Als Bestseller auf Startseite anzeigen</Label>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="pt-6 space-y-4">
+                  <h3 className="font-medium">Medien verwalten</h3>
+                  <ProductMediaManager
+                    productId={prodForm.id}
+                    mainImageUrl={prodForm.main_image_url}
+                    onMainImageChange={(url) => setProdForm({ ...prodForm, main_image_url: url })}
+                    videoMode={prodForm.video_mode}
+                    onVideoModeChange={(mode) => setProdForm({ ...prodForm, video_mode: mode })}
+                    videoUrl={prodForm.video_url}
+                    onVideoUrlChange={(url) => setProdForm({ ...prodForm, video_url: url })}
+                    youtubeUrl={prodForm.youtube_url}
+                    onYoutubeUrlChange={(url) => setProdForm({ ...prodForm, youtube_url: url })}
+                  />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="pt-6 space-y-4">
+                  <h3 className="font-medium">SEO & Details</h3>
+                  <div className="space-y-3">
+                    <div>
+                      <Label>SEO Titel</Label>
+                      <Input value={prodForm.seo_title} onChange={(e) => setProdForm({ ...prodForm, seo_title: e.target.value })} />
+                    </div>
+                    <div>
+                      <Label>SEO Beschreibung</Label>
+                      <Textarea value={prodForm.seo_description} onChange={(e) => setProdForm({ ...prodForm, seo_description: e.target.value })} />
+                    </div>
+                    <Separator className="my-2" />
+                    <div>
+                      <Label>Story</Label>
+                      <Textarea value={prodForm.details_story} onChange={(e) => setProdForm({ ...prodForm, details_story: e.target.value })} />
+                    </div>
+                    <div>
+                      <Label>Material</Label>
+                      <Textarea value={prodForm.details_material} onChange={(e) => setProdForm({ ...prodForm, details_material: e.target.value })} />
+                    </div>
+                    <div>
+                      <Label>Pflege</Label>
+                      <Textarea value={prodForm.details_care} onChange={(e) => setProdForm({ ...prodForm, details_care: e.target.value })} />
+                    </div>
+                    <div>
+                      <Label>Bilder (Legacy - eine URL pro Zeile)</Label>
+                      <Textarea placeholder="https://...jpg" value={prodForm.details_imagesText} onChange={(e) => setProdForm({ ...prodForm, details_imagesText: e.target.value })} />
+                      <p className="text-xs text-muted-foreground">Hinweis: Verwende besser die Medien-Verwaltung oben</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="pt-6">
+                  <Button onClick={saveProduct} disabled={!isEditor || !prodForm.category_id} className="w-full">
+                    Produkt speichern
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
 
             <Card>
               <CardContent className="pt-6">
@@ -987,6 +1036,10 @@ const [prodForm, setProdForm] = useState<any>({
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="settings" className="mt-6">
+          <AdminSettings canEdit={isAdmin} />
         </TabsContent>
 
         <TabsContent value="users" className="mt-6">

@@ -12,6 +12,10 @@ export type Product = {
   teaser: string;
   categories: string[];
   images: string[];
+  main_image_url?: string;
+  video_mode?: string;
+  video_url?: string;
+  youtube_url?: string;
   bestseller?: boolean;
   story: string;
   material: string;
