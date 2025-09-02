@@ -301,7 +301,24 @@ export function ProductMediaManager({
             <CardHeader>
               <CardTitle className="text-lg">Hauptbild (Pflicht)</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+              {mainImageUrl && (
+                <div className="relative">
+                  <img 
+                    src={mainImageUrl} 
+                    alt="Hauptbild Vorschau" 
+                    className="w-full max-w-md h-48 object-cover rounded-lg border"
+                  />
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="absolute top-2 right-2"
+                    onClick={() => handleMainImageChange("")}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
               <FileUpload
                 onUpload={handleMainImageChange}
                 currentUrl={mainImageUrl}
