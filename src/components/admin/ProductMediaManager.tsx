@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { FileUpload } from "./FileUpload";
@@ -28,6 +29,10 @@ interface ProductMediaManagerProps {
   onVideoUrlChange: (url: string) => void;
   youtubeUrl: string;
   onYoutubeUrlChange: (url: string) => void;
+  cardImageMode?: string;
+  onCardImageModeChange?: (mode: string) => void;
+  cardImageImageId?: string;
+  onCardImageImageIdChange?: (id: string) => void;
 }
 
 export function ProductMediaManager({
@@ -39,7 +44,11 @@ export function ProductMediaManager({
   videoUrl,
   onVideoUrlChange,
   youtubeUrl,
-  onYoutubeUrlChange
+  onYoutubeUrlChange,
+  cardImageMode = "auto",
+  onCardImageModeChange,
+  cardImageImageId,
+  onCardImageImageIdChange
 }: ProductMediaManagerProps) {
   const [galleryImages, setGalleryImages] = useState<ProductImage[]>([]);
   const [newImageAlt, setNewImageAlt] = useState("");
@@ -290,10 +299,11 @@ export function ProductMediaManager({
   return (
     <div className="space-y-6">
       <Tabs defaultValue="main-image" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="main-image">Hauptbild</TabsTrigger>
           <TabsTrigger value="gallery">Galerie</TabsTrigger>
           <TabsTrigger value="video">Video</TabsTrigger>
+          <TabsTrigger value="card-image">Karten-Bild</TabsTrigger>
         </TabsList>
 
         <TabsContent value="main-image" className="space-y-4">
@@ -543,6 +553,120 @@ export function ProductMediaManager({
                   />
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="card-image" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Bild für Produktkarten</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label>Bildmodus für Karten</Label>
+                <RadioGroup 
+                  value={cardImageMode} 
+                  onValueChange={(value) => onCardImageModeChange?.(value)}
+                  className="mt-2"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="auto" id="auto" />
+                    <Label htmlFor="auto">Automatisch (Hauptbild, dann erstes Galerie-Bild)</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="main" id="main" />
+                    <Label htmlFor="main">Immer Hauptbild verwenden</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="gallery" id="gallery" />
+                    <Label htmlFor="gallery">Bestimmtes Galerie-Bild auswählen</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              {cardImageMode === "gallery" && galleryImages.length > 0 && (
+                <div>
+                  <Label>Galerie-Bild auswählen</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
+                    {galleryImages.map((image) => (
+                      <div
+                        key={image.id}
+                        className={`relative cursor-pointer rounded-lg border-2 transition-all ${
+                          cardImageImageId === image.id 
+                            ? "border-primary bg-primary/10" 
+                            : "border-muted hover:border-primary/50"
+                        }`}
+                        onClick={() => onCardImageImageIdChange?.(image.id || "")}
+                      >
+                        <img
+                          src={image.url}
+                          alt={image.alt}
+                          className="w-full h-20 object-cover rounded-md"
+                        />
+                        <div className="p-2">
+                          <p className="text-xs text-muted-foreground truncate">
+                            {image.alt}
+                          </p>
+                        </div>
+                        {cardImageImageId === image.id && (
+                          <div className="absolute top-1 right-1 w-3 h-3 bg-primary rounded-full" />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {cardImageMode === "gallery" && galleryImages.length === 0 && (
+                <div className="text-muted-foreground text-sm p-4 bg-muted/50 rounded-lg">
+                  Keine Galerie-Bilder verfügbar. Fügen Sie zunächst Bilder zur Galerie hinzu.
+                </div>
+              )}
+
+              {/* Card Preview */}
+              <div>
+                <Label>Vorschau der Produktkarte</Label>
+                <div className="mt-2 max-w-xs">
+                  <div className="rounded-lg border bg-card overflow-hidden">
+                    <div className="aspect-[4/3] bg-muted">
+                      {(() => {
+                        let previewImageSrc = null;
+                        
+                        if (cardImageMode === "main") {
+                          previewImageSrc = mainImageUrl;
+                        } else if (cardImageMode === "gallery" && cardImageImageId) {
+                          const selectedImage = galleryImages.find(img => img.id === cardImageImageId);
+                          previewImageSrc = selectedImage?.url || null;
+                        } else {
+                          // auto mode
+                          previewImageSrc = mainImageUrl || galleryImages[0]?.url || null;
+                        }
+
+                        return previewImageSrc ? (
+                          <img 
+                            src={previewImageSrc} 
+                            alt="Karten-Vorschau"
+                            className="w-full h-full object-cover object-center" 
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
+                            Kein Bild verfügbar
+                          </div>
+                        );
+                      })()}
+                    </div>
+                    <div className="p-3">
+                      <h3 className="font-playfair text-lg">Produktname</h3>
+                      <p className="text-muted-foreground text-sm mt-1">Produkt-Beschreibung...</p>
+                      <div className="mt-2 flex items-center justify-between">
+                        <span className="font-medium">€ 99,00</span>
+                        <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">Details</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

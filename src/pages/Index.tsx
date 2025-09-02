@@ -7,6 +7,7 @@ import { CategoryCard } from "@/components/CategoryCard";
 import { ProductCard } from "@/components/ProductCard";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getCardImage, getCardImageAlt } from "@/lib/card-image";
 import wood1 from "@/assets/wood-board-1.jpg"; // placeholder image for DB-backed cards
 
 
@@ -22,8 +23,11 @@ const Index = () => {
     // fetch categories
     supabase.from("categories").select("slug,name,description,sort_order").order("sort_order", { ascending: true })
       .then(({ data }) => setDbCategories(data ?? []));
-    // fetch featured products for bestsellers section
-    supabase.from("products").select("id,slug,title,description,base_price,created_at,active,is_home_featured").eq("active", true).eq("is_home_featured", true).order("created_at", { ascending: false }).limit(6)
+    // fetch featured products for bestsellers section with images
+    supabase.from("products").select(`
+      id,slug,title,description,base_price,created_at,active,is_home_featured,main_image_url,card_image_mode,card_image_image_id,
+      product_images (*)
+    `).eq("active", true).eq("is_home_featured", true).order("created_at", { ascending: false }).limit(6)
       .then(({ data }) => setDbProducts(data ?? []));
     // fetch hero data
     supabase.from("homepage_hero").select("*").eq("is_active", true).maybeSingle()
@@ -56,8 +60,9 @@ const Index = () => {
     title: p.title,
     teaser: (p.description ?? "").slice(0, 120),
     price: Math.round(Number(p.base_price) * 100),
-    images: [wood1],
-    bestseller: false,
+    images: [],
+    main_image_url: getCardImage(p),
+    bestseller: true,
     story: "",
     material: "",
     care: "",

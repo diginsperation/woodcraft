@@ -227,6 +227,8 @@ export type Database = {
         Row: {
           active: boolean
           base_price: number
+          card_image_image_id: string | null
+          card_image_mode: string | null
           category_id: string
           created_at: string
           description: string | null
@@ -247,6 +249,8 @@ export type Database = {
         Insert: {
           active?: boolean
           base_price: number
+          card_image_image_id?: string | null
+          card_image_mode?: string | null
           category_id: string
           created_at?: string
           description?: string | null
@@ -267,6 +271,8 @@ export type Database = {
         Update: {
           active?: boolean
           base_price?: number
+          card_image_image_id?: string | null
+          card_image_mode?: string | null
           category_id?: string
           created_at?: string
           description?: string | null
@@ -285,6 +291,13 @@ export type Database = {
           youtube_url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "products_card_image_image_id_fkey"
+            columns: ["card_image_image_id"]
+            isOneToOne: false
+            referencedRelation: "product_images"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "products_category_id_fkey"
             columns: ["category_id"]

@@ -82,6 +82,8 @@ const [prodForm, setProdForm] = useState<any>({
   video_mode: "none",
   video_url: "",
   youtube_url: "",
+  card_image_mode: "auto",
+  card_image_image_id: "",
   seo_title: "",
   seo_description: "",
   details_story: "",
@@ -117,7 +119,7 @@ const [prodForm, setProdForm] = useState<any>({
   const loadCatalog = async () => {
     const [{ data: cats }, { data: prods }] = await Promise.all([
       supabase.from("categories").select("id, name, slug, description, sort_order").order("sort_order", { ascending: true }),
-      supabase.from("products").select("id, title, slug, category_id, description, base_price, active, main_image_url, video_mode, video_url, youtube_url, seo_title, seo_description, details, is_home_featured").order("created_at", { ascending: false }),
+      supabase.from("products").select("id, title, slug, category_id, description, base_price, active, main_image_url, video_mode, video_url, youtube_url, card_image_mode, card_image_image_id, seo_title, seo_description, details, is_home_featured").order("created_at", { ascending: false }),
     ]);
     setCategories(cats ?? []);
     setProducts(prods ?? []);
@@ -225,6 +227,8 @@ const [prodForm, setProdForm] = useState<any>({
       video_mode: prodForm.video_mode || "none",
       video_url: prodForm.video_url || null,
       youtube_url: prodForm.youtube_url || null,
+      card_image_mode: prodForm.card_image_mode || "auto",
+      card_image_image_id: prodForm.card_image_image_id || null,
       category_id: prodForm.category_id,
       seo_title: prodForm.seo_title || null,
       seo_description: prodForm.seo_description || null,
@@ -253,6 +257,8 @@ const [prodForm, setProdForm] = useState<any>({
       video_mode: "none",
       video_url: "",
       youtube_url: "",
+      card_image_mode: "auto",
+      card_image_image_id: "",
       seo_title: "",
       seo_description: "",
       details_story: "",
@@ -279,6 +285,8 @@ const [prodForm, setProdForm] = useState<any>({
       video_mode: p.video_mode ?? "none",
       video_url: p.video_url ?? "",
       youtube_url: p.youtube_url ?? "",
+      card_image_mode: p.card_image_mode ?? "auto",
+      card_image_image_id: p.card_image_image_id ?? "",
       seo_title: p.seo_title ?? "",
       seo_description: p.seo_description ?? "",
       details_story: details.story ?? "",
@@ -969,6 +977,10 @@ const [prodForm, setProdForm] = useState<any>({
                     onVideoUrlChange={(url) => setProdForm({ ...prodForm, video_url: url })}
                     youtubeUrl={prodForm.youtube_url}
                     onYoutubeUrlChange={(url) => setProdForm({ ...prodForm, youtube_url: url })}
+                    cardImageMode={prodForm.card_image_mode}
+                    onCardImageModeChange={(mode) => setProdForm({ ...prodForm, card_image_mode: mode })}
+                    cardImageImageId={prodForm.card_image_image_id}
+                    onCardImageImageIdChange={(id) => setProdForm({ ...prodForm, card_image_image_id: id })}
                   />
                 </CardContent>
               </Card>

@@ -5,6 +5,7 @@ import { ProductCard } from "@/components/ProductCard";
 import { strings } from "@/content/strings.de";
 import { Seo } from "@/components/Seo";
 import { supabase } from "@/integrations/supabase/client";
+import { getCardImage, getCardImageAlt } from "@/lib/card-image";
 import wood1 from "@/assets/wood-board-1.jpg";
 
 export default function ProductList() {
@@ -17,7 +18,10 @@ export default function ProductList() {
   useEffect(() => {
     supabase.from("categories").select("id,slug,name,description,sort_order").order("sort_order", { ascending: true })
       .then(({ data }) => setDbCategories(data ?? []));
-    supabase.from("products").select("id,slug,title,description,base_price,active,category_id").eq("active", true)
+    supabase.from("products").select(`
+      id,slug,title,description,base_price,active,category_id,main_image_url,card_image_mode,card_image_image_id,
+      product_images (*)
+    `).eq("active", true)
       .then(({ data }) => setDbProducts(data ?? []));
   }, []);
 
@@ -31,7 +35,8 @@ export default function ProductList() {
       title: p.title,
       teaser: (p.description ?? "").slice(0, 120),
       price: Math.round(Number(p.base_price) * 100),
-      images: [wood1],
+      images: [],
+      main_image_url: getCardImage(p),
       bestseller: false,
       story: "",
       material: "",
