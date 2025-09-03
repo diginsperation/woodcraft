@@ -192,9 +192,9 @@ export default function ProductDetail() {
   
 
   return (
-    <div className="container py-10">
+    <div className="w-full max-w-screen-xl mx-auto px-4 py-10">
       <Seo title={seoTitle} description={seoDescription} canonicalPath={canonicalPath} />
-      <div className="grid md:grid-cols-2 gap-8">
+      <div className="grid md:grid-cols-2 gap-6 md:gap-8">
         <div>
           <ProductGallery
             productId={mapped.id}

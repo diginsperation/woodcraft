@@ -159,12 +159,12 @@ export function ProductGallery({ productId, mainImageUrl, productTitle, videoMod
     );
   };
 
-  // Adaptive thumbnail sizing based on count and viewport
+  // Adaptive thumbnail sizing - mobile first approach
   const getThumbnailSize = () => {
     const count = mediaItems.length;
-    if (count <= 4) return 'w-24 h-24 sm:w-20 sm:h-20'; // 100px desktop, 80px mobile
-    if (count <= 8) return 'w-20 h-20 sm:w-16 sm:h-16'; // 80px desktop, 64px mobile  
-    return 'w-16 h-16 sm:w-12 sm:h-12'; // 64px desktop, 48px mobile
+    if (count <= 4) return 'w-16 h-16 sm:w-20 sm:h-20'; // 64px mobile, 80px desktop
+    if (count <= 8) return 'w-14 h-14 sm:w-16 sm:h-16'; // 56px mobile, 64px desktop  
+    return 'w-12 h-12 sm:w-14 sm:h-14'; // 48px mobile, 56px desktop
   };
 
   const renderThumbnail = (item: typeof mediaItems[0], index: number) => {
@@ -254,8 +254,8 @@ export function ProductGallery({ productId, mainImageUrl, productTitle, videoMod
 
   return (
     <div className="space-y-4" onKeyDown={handleKeyDown} tabIndex={0}>
-      {/* Main Display Area - Amazon-like responsive sizing */}
-      <div className="relative aspect-square w-full min-w-[280px] max-w-[400px] sm:max-w-[500px] md:max-w-[600px] lg:max-w-[800px] xl:max-w-[1000px] mx-auto overflow-hidden rounded-lg border bg-background">
+      {/* Main Display Area - Mobile responsive */}
+      <div className="relative aspect-square w-full max-w-lg mx-auto overflow-hidden rounded-lg border bg-background">
         {renderMainContent()}
         
         {/* Navigation Arrows (Desktop) */}
