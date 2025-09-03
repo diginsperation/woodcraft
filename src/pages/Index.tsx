@@ -25,7 +25,7 @@ const Index = () => {
       .then(({ data }) => setDbCategories(data ?? []));
     // fetch featured products for bestsellers section with images
     supabase.from("products").select(`
-      id,slug,title,description,base_price,created_at,active,is_home_featured,main_image_url,card_image_mode,card_image_image_id,
+      id,slug,title,description,base_price,created_at,active,is_home_featured,main_image_url,card_image_mode,card_image_image_id,card_image_url,
       product_images!product_images_product_id_fkey (*)
     `).eq("active", true).eq("is_home_featured", true).order("created_at", { ascending: false }).limit(6)
       .then(({ data }) => setDbProducts(data ?? []));

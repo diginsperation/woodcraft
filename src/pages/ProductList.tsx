@@ -19,7 +19,7 @@ export default function ProductList() {
     supabase.from("categories").select("id,slug,name,description,sort_order").order("sort_order", { ascending: true })
       .then(({ data }) => setDbCategories(data ?? []));
     supabase.from("products").select(`
-      id,slug,title,description,base_price,active,category_id,main_image_url,card_image_mode,card_image_image_id,
+      id,slug,title,description,base_price,active,category_id,main_image_url,card_image_mode,card_image_image_id,card_image_url,
       product_images!product_images_product_id_fkey (*)
     `).eq("active", true)
       .then(({ data }) => setDbProducts(data ?? []));
