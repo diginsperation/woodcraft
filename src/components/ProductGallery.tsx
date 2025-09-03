@@ -255,29 +255,29 @@ export function ProductGallery({ productId, mainImageUrl, productTitle, videoMod
   return (
     <div className="space-y-4" onKeyDown={handleKeyDown} tabIndex={0}>
       {/* Main Display Area - Mobile responsive */}
-      <div className="relative aspect-square w-full max-w-lg mx-auto overflow-hidden rounded-lg border bg-background">
+      <div className="relative aspect-square w-full overflow-hidden rounded-lg border bg-background">
         {renderMainContent()}
         
-        {/* Navigation Arrows (Desktop) */}
+        {/* Navigation Arrows (Hidden on mobile, visible on desktop) */}
         {mediaItems.length > 1 && (
           <>
             <Button
               variant="outline"
               size="icon"
-              className="absolute left-4 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur-sm opacity-0 hover:opacity-100 transition-opacity"
+              className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 hover:opacity-100 transition-opacity hidden sm:flex w-8 h-8 sm:w-10 sm:h-10"
               onClick={() => setActiveIndex(Math.max(0, activeIndex - 1))}
               disabled={activeIndex === 0}
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4" />
             </Button>
             <Button
               variant="outline"
               size="icon"
-              className="absolute right-4 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur-sm opacity-0 hover:opacity-100 transition-opacity"
+              className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 hover:opacity-100 transition-opacity hidden sm:flex w-8 h-8 sm:w-10 sm:h-10"
               onClick={() => setActiveIndex(Math.min(mediaItems.length - 1, activeIndex + 1))}
               disabled={activeIndex === mediaItems.length - 1}
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
             </Button>
           </>
         )}
@@ -285,8 +285,8 @@ export function ProductGallery({ productId, mainImageUrl, productTitle, videoMod
 
       {/* Thumbnail Strip - Mobile-first horizontal scroll */}
       {mediaItems.length > 1 && (
-        <div className="w-full overflow-x-auto scroll-smooth scrollbar-hide">
-          <div className="flex gap-2 px-2 pb-2" style={{ minWidth: 'fit-content' }}>
+        <div className="w-full overflow-x-auto scroll-smooth scrollbar-hide px-2 pb-2">
+          <div className="flex gap-2 flex-nowrap">
             {mediaItems.map((item, index) => renderThumbnail(item, index))}
           </div>
         </div>
