@@ -285,8 +285,8 @@ export function ProductGallery({ productId, mainImageUrl, productTitle, videoMod
 
       {/* Thumbnail Strip - Responsive grid with adaptive sizing */}
       {mediaItems.length > 1 && (
-        <div className="flex gap-1 sm:gap-2 justify-center overflow-x-auto scroll-smooth px-2 pb-2">
-          <div className="flex gap-1 sm:gap-2">
+        <div className="w-full overflow-x-auto scroll-smooth px-2 pb-2 scrollbar-hide">
+          <div className="flex gap-1 sm:gap-2 flex-nowrap w-max">
             {mediaItems.map((item, index) => renderThumbnail(item, index))}
           </div>
         </div>
