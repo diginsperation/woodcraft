@@ -12,6 +12,7 @@ import { Seo } from "@/components/Seo";
 import { ProductMediaManager } from "@/components/admin/ProductMediaManager";
 import { AdminSettings } from "@/components/admin/AdminSettings";
 import { FileUpload } from "@/components/admin/FileUpload";
+import { LogoManager } from "@/components/admin/LogoManager";
 
 // Admin roles helper
 type AppRole = "admin" | "editor" | "viewer";
@@ -534,9 +535,11 @@ const [prodForm, setProdForm] = useState<any>({
 
         <TabsContent value="homepage" className="mt-6">
           <div className="space-y-8">
+            <LogoManager canEdit={isEditor} />
+            
             <Card>
               <CardContent className="pt-6">
-                <h2 className="font-medium mb-4">Header bearbeiten</h2>
+                <h2 className="font-medium mb-4">Header bearbeiten (Legacy)</h2>
                 <div className="space-y-3">
                   <div>
                     <Label>Logo-Text</Label>
