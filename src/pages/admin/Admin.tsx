@@ -902,6 +902,16 @@ const [prodForm, setProdForm] = useState<any>({
                       placeholder="Bild hier ablegen oder klicken – optimale Größe: 1000×800px (5:4)"
                       allowUrlInput
                     />
+                    {catForm.image_url && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="mt-2 w-full"
+                        onClick={() => setCatForm({ ...catForm, image_url: "" })}
+                      >
+                        Kategorie-Bild entfernen
+                      </Button>
+                    )}
                   </div>
                   <div>
                     <Label>Sortierung</Label>
