@@ -1,11 +1,14 @@
 import { Link } from "react-router-dom";
 import type { Category } from "@/data/products";
 import { strings } from "@/content/strings.de";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 export function CategoryCard({ category }: { category: Category }) {
   return (
     <article className="rounded-lg border bg-card overflow-hidden hover:shadow-md transition-shadow">
-      <img src={category.image} alt={category.title + " image"} className="w-full h-40 object-cover" loading="lazy" />
+      <AspectRatio ratio={7/4}>
+        <img src={category.image} alt={category.title + " image"} className="w-full h-full object-cover" loading="lazy" />
+      </AspectRatio>
       <div className="p-4">
         <h3 className="font-playfair text-lg">{category.title}</h3>
         <p className="text-muted-foreground text-sm mt-1">{category.teaser}</p>
