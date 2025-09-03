@@ -192,9 +192,10 @@ export default function ProductDetail() {
   
 
   return (
-    <div className="w-full max-w-screen-xl mx-auto px-4 py-10">
-      <Seo title={seoTitle} description={seoDescription} canonicalPath={canonicalPath} />
-      <div className="grid md:grid-cols-2 gap-6 md:gap-8">
+    <div className="w-full overflow-x-hidden">
+      <div className="max-w-screen-xl mx-auto px-4 py-6 sm:py-10">
+        <Seo title={seoTitle} description={seoDescription} canonicalPath={canonicalPath} />
+        <div className="grid md:grid-cols-2 gap-6 md:gap-8">
         <div>
           <ProductGallery
             productId={mapped.id}
@@ -204,10 +205,10 @@ export default function ProductDetail() {
             videoUrl={mapped.youtubeUrl}
           />
         </div>
-        <div>
-          <h1 className="font-playfair text-3xl md:text-4xl">{mapped.title}</h1>
-          <p className="mt-2 text-muted-foreground">{mapped.teaser}</p>
-          <p className="mt-4 text-2xl font-semibold">{(mapped.priceCents / 100).toFixed(2)} € <span className="text-sm text-muted-foreground">({strings.product.priceInclVat})</span></p>
+        <div className="min-w-0">
+          <h1 className="font-playfair text-2xl sm:text-3xl md:text-4xl break-words">{mapped.title}</h1>
+          <p className="mt-2 text-muted-foreground break-words">{mapped.teaser}</p>
+          <p className="mt-4 text-xl sm:text-2xl font-semibold break-words">{(mapped.priceCents / 100).toFixed(2)} € <span className="text-sm text-muted-foreground">({strings.product.priceInclVat})</span></p>
 
           <form onSubmit={form.handleSubmit(submit)} className="mt-6 space-y-4">
             <div>
@@ -277,24 +278,25 @@ export default function ProductDetail() {
               </Card>
             )}
 
-            <Button type="submit" className="w-full">{strings.product.ctaInquiry}</Button>
+            <Button type="submit" className="w-full h-12 text-sm sm:text-base">{strings.product.ctaInquiry}</Button>
           </form>
         </div>
       </div>
 
-      <section className="mt-12" aria-labelledby="details">
-        <div>
-          <h2 id="details" className="font-playfair text-2xl mb-4">{strings.product.description}</h2>
-          <article className="prose max-w-none">
-            <h3>{strings.product.story}</h3>
-            <p>{mapped.story}</p>
-            <h3>{strings.product.material}</h3>
-            <p>{mapped.material}</p>
-            <h3>{strings.product.care}</h3>
-            <p>{mapped.care}</p>
-          </article>
-        </div>
-      </section>
+        <section className="mt-8 sm:mt-12" aria-labelledby="details">
+          <div className="min-w-0">
+            <h2 id="details" className="font-playfair text-xl sm:text-2xl mb-4 break-words">{strings.product.description}</h2>
+            <article className="prose prose-sm sm:prose max-w-none break-words [&_*]:break-words [&_*]:overflow-wrap-anywhere">
+              <h3 className="text-base sm:text-lg">{strings.product.story}</h3>
+              <p className="text-sm sm:text-base">{mapped.story}</p>
+              <h3 className="text-base sm:text-lg">{strings.product.material}</h3>
+              <p className="text-sm sm:text-base">{mapped.material}</p>
+              <h3 className="text-base sm:text-lg">{strings.product.care}</h3>
+              <p className="text-sm sm:text-base">{mapped.care}</p>
+            </article>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
