@@ -21,7 +21,7 @@ const Index = () => {
 
   useEffect(() => {
     // fetch categories
-    supabase.from("categories").select("slug,name,description,sort_order").order("sort_order", { ascending: true })
+    supabase.from("categories").select("slug,name,description,sort_order,image_url").order("sort_order", { ascending: true })
       .then(({ data }) => setDbCategories(data ?? []));
     // fetch featured products for bestsellers section with images
     supabase.from("products").select(`
@@ -51,7 +51,7 @@ const Index = () => {
     slug: c.slug,
     title: c.name,
     teaser: c.description ?? "",
-    image: wood1,
+    image: c.image_url || wood1,
   }));
 
   const bestsellers = dbProducts.map((p) => ({

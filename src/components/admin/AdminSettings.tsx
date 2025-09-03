@@ -113,18 +113,23 @@ export function AdminSettings({ canEdit }: AdminSettingsProps) {
         .list("", { limit: 1000 });
 
       // Get all used URLs from products and product_images
-      const [{ data: products }, { data: productImages }] = await Promise.all([
-        supabase.from("products").select("main_image_url, video_url"),
-        supabase.from("product_images").select("url")
+      const [{ data: products }, { data: productImages }, { data: categories }] = await Promise.all([
+        supabase.from("products").select("main_image_url, video_url, card_image_url"),
+        supabase.from("product_images").select("url"),
+        supabase.from("categories").select("image_url")
       ]);
 
       const usedUrls = new Set();
       products?.forEach(p => {
         if (p.main_image_url) usedUrls.add(p.main_image_url.split('/').pop());
         if (p.video_url) usedUrls.add(p.video_url.split('/').pop());
+        if (p.card_image_url) usedUrls.add(p.card_image_url.split('/').pop());
       });
       productImages?.forEach(img => {
         if (img.url) usedUrls.add(img.url.split('/').pop());
+      });
+      categories?.forEach(c => {
+        if (c.image_url) usedUrls.add(c.image_url.split('/').pop());
       });
 
       // Find unused files

@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Seo } from "@/components/Seo";
 import { ProductMediaManager } from "@/components/admin/ProductMediaManager";
 import { AdminSettings } from "@/components/admin/AdminSettings";
+import { FileUpload } from "@/components/admin/FileUpload";
 
 // Admin roles helper
 type AppRole = "admin" | "editor" | "viewer";
@@ -68,7 +69,7 @@ export default function Admin() {
   const [footerContactForm, setFooterContactForm] = useState<any>({ content_rich: "" });
 
   // Forms
-  const [catForm, setCatForm] = useState<{ id?: string; name: string; slug?: string; description?: string; sort_order: number }>({ name: "", description: "", sort_order: 0 });
+  const [catForm, setCatForm] = useState<{ id?: string; name: string; slug?: string; description?: string; image_url?: string; sort_order: number }>({ name: "", description: "", image_url: "", sort_order: 0 });
 const [prodForm, setProdForm] = useState<any>({
   id: undefined,
   title: "",
@@ -119,7 +120,7 @@ const [prodForm, setProdForm] = useState<any>({
 
   const loadCatalog = async () => {
     const [{ data: cats }, { data: prods }] = await Promise.all([
-      supabase.from("categories").select("id, name, slug, description, sort_order").order("sort_order", { ascending: true }),
+      supabase.from("categories").select("id, name, slug, description, sort_order, image_url").order("sort_order", { ascending: true }),
       supabase.from("products").select("id, title, slug, category_id, description, base_price, active, main_image_url, video_mode, video_url, youtube_url, card_image_mode, card_image_image_id, card_image_url, seo_title, seo_description, details, is_home_featured").order("created_at", { ascending: false }),
     ]);
     setCategories(cats ?? []);
@@ -190,17 +191,17 @@ const [prodForm, setProdForm] = useState<any>({
   // Category CRUD
   const saveCategory = async () => {
     if (!isEditor) return;
-    const payload: any = { name: catForm.name, description: catForm.description, sort_order: Number(catForm.sort_order) || 0 };
+    const payload: any = { name: catForm.name, description: catForm.description, image_url: catForm.image_url || null, sort_order: Number(catForm.sort_order) || 0 };
     if (catForm.slug) payload.slug = catForm.slug; // editable
     const { error } = catForm.id
       ? await supabase.from("categories").update(payload).eq("id", catForm.id)
       : await supabase.from("categories").insert(payload);
     if (error) return toast.error(error.message);
-    setCatForm({ name: "", description: "", sort_order: 0 });
+    setCatForm({ name: "", description: "", image_url: "", sort_order: 0 });
     await loadCatalog();
     toast.success("Kategorie gespeichert");
   };
-  const editCategory = (c: any) => setCatForm({ id: c.id, name: c.name, slug: c.slug, description: c.description, sort_order: c.sort_order });
+  const editCategory = (c: any) => setCatForm({ id: c.id, name: c.name, slug: c.slug, description: c.description, image_url: c.image_url || "", sort_order: c.sort_order });
   const deleteCategory = async (id: string) => {
     if (!isEditor) return;
     const { error } = await supabase.from("categories").delete().eq("id", id);
@@ -890,6 +891,17 @@ const [prodForm, setProdForm] = useState<any>({
                   <div>
                     <Label>Beschreibung</Label>
                     <Input value={catForm.description ?? ""} onChange={(e) => setCatForm({ ...catForm, description: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label>Kartenbild (Kategorie)</Label>
+                    <p className="text-xs text-muted-foreground mb-2">Empfehlung: 5:4 (z.B. 1000×800px), WebP bevorzugt. Wird in Kartenansichten verwendet.</p>
+                    <FileUpload
+                      currentUrl={catForm.image_url || ""}
+                      onUpload={(url) => setCatForm({ ...catForm, image_url: url })}
+                      bucketPath={`categories`}
+                      placeholder="Bild hier ablegen oder klicken – optimale Größe: 1000×800px (5:4)"
+                      allowUrlInput
+                    />
                   </div>
                   <div>
                     <Label>Sortierung</Label>
