@@ -124,25 +124,43 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean | null
+          logo_alt: string | null
+          logo_color_dark: string | null
+          logo_color_light: string | null
+          logo_font: string | null
           logo_image_url: string | null
           logo_text: string | null
           updated_at: string
+          updated_by: string | null
+          use_text_logo_if_image_fails: boolean | null
         }
         Insert: {
           created_at?: string
           id?: string
           is_active?: boolean | null
+          logo_alt?: string | null
+          logo_color_dark?: string | null
+          logo_color_light?: string | null
+          logo_font?: string | null
           logo_image_url?: string | null
           logo_text?: string | null
           updated_at?: string
+          updated_by?: string | null
+          use_text_logo_if_image_fails?: boolean | null
         }
         Update: {
           created_at?: string
           id?: string
           is_active?: boolean | null
+          logo_alt?: string | null
+          logo_color_dark?: string | null
+          logo_color_light?: string | null
+          logo_font?: string | null
           logo_image_url?: string | null
           logo_text?: string | null
           updated_at?: string
+          updated_by?: string | null
+          use_text_logo_if_image_fails?: boolean | null
         }
         Relationships: []
       }
@@ -187,6 +205,62 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      logo_versions: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          header_id: string | null
+          id: string
+          is_active: boolean | null
+          logo_alt: string | null
+          logo_color_dark: string | null
+          logo_color_light: string | null
+          logo_font: string | null
+          logo_image_url: string | null
+          logo_text: string | null
+          use_text_logo_if_image_fails: boolean | null
+          version_number: number
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          header_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_alt?: string | null
+          logo_color_dark?: string | null
+          logo_color_light?: string | null
+          logo_font?: string | null
+          logo_image_url?: string | null
+          logo_text?: string | null
+          use_text_logo_if_image_fails?: boolean | null
+          version_number?: number
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          header_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_alt?: string | null
+          logo_color_dark?: string | null
+          logo_color_light?: string | null
+          logo_font?: string | null
+          logo_image_url?: string | null
+          logo_text?: string | null
+          use_text_logo_if_image_fails?: boolean | null
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "logo_versions_header_id_fkey"
+            columns: ["header_id"]
+            isOneToOne: false
+            referencedRelation: "homepage_header"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       product_images: {
         Row: {
