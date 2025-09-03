@@ -64,9 +64,12 @@ serve(async (req) => {
     const url = new URL(req.url)
     const method = req.method
     const path = url.pathname
+    
+    console.log(`Logo management request: ${method} ${path}`)
 
     // GET /logo - Get current logo settings
     if (method === 'GET' && path.endsWith('/logo')) {
+      console.log('Getting logo settings...')
       const { data, error } = await supabase
         .from('homepage_header')
         .select('*')
@@ -74,12 +77,14 @@ serve(async (req) => {
         .maybeSingle()
 
       if (error) {
+        console.error('Error getting logo settings:', error)
         return new Response(JSON.stringify({ error: error.message }), {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
 
+      console.log('Logo settings retrieved:', data)
       return new Response(JSON.stringify(data || {}), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
@@ -87,7 +92,9 @@ serve(async (req) => {
 
     // PUT /logo - Update logo settings (text, font, colors, alt)
     if (method === 'PUT' && path.endsWith('/logo')) {
+      console.log('Updating logo settings...')
       const settings: LogoSettings = await req.json()
+      console.log('Settings to update:', settings)
       
       // Validate font selection
       if (settings.logo_font && !['Fraunces', 'Playfair Display', 'Inter', 'System'].includes(settings.logo_font)) {
@@ -144,11 +151,14 @@ serve(async (req) => {
       }
 
       if (result.error) {
+        console.error('Error updating logo settings:', result.error)
         return new Response(JSON.stringify({ error: result.error.message }), {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
+
+      console.log('Logo settings updated:', result.data)
 
       // Create version entry
       if (result.data) {
@@ -173,15 +183,19 @@ serve(async (req) => {
 
     // POST /logo/upload - Upload new logo image
     if (method === 'POST' && path.endsWith('/logo/upload')) {
+      console.log('Uploading logo image...')
       const formData = await req.formData()
       const file = formData.get('file') as File
       
       if (!file) {
+        console.log('No file provided')
         return new Response(JSON.stringify({ error: 'No file provided' }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
+
+      console.log(`File details: ${file.name}, ${file.type}, ${file.size} bytes`)
 
       // Validate file type
       if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
@@ -224,11 +238,14 @@ serve(async (req) => {
         })
 
       if (uploadError) {
+        console.error('Upload error:', uploadError)
         return new Response(JSON.stringify({ error: uploadError.message }), {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
+
+      console.log('File uploaded successfully:', uploadData)
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
@@ -282,6 +299,7 @@ serve(async (req) => {
 
     // DELETE /logo/image - Delete logo image, fallback to text
     if (method === 'DELETE' && path.endsWith('/logo/image')) {
+      console.log('Deleting logo image...')
       const { data: currentHeader } = await supabase
         .from('homepage_header')
         .select('*')
@@ -289,11 +307,14 @@ serve(async (req) => {
         .maybeSingle()
 
       if (!currentHeader) {
+        console.log('No header found to delete logo from')
         return new Response(JSON.stringify({ error: 'No header found' }), {
           status: 404,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
+
+      console.log('Current header found, deleting logo...')
 
       // Delete from storage if exists
       if (currentHeader.logo_image_url) {

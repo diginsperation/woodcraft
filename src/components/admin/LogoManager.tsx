@@ -54,12 +54,25 @@ export function LogoManager({ canEdit }: LogoManagerProps) {
 
   const loadSettings = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('logo-management', {
-        method: 'GET'
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const response = await fetch('https://mqjtebcyrzmnapditxfj.supabase.co/functions/v1/logo-management/logo', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1xanRlYmN5cnptbmFwZGl0eGZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ5MTUxNDAsImV4cCI6MjA3MDQ5MTE0MH0.awHBmuqwFW0urRUrZqCjcSD6vvZjyX-ERGJ-j73YLSk'
+        }
       });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to load settings');
+      }
 
+      const data = await response.json();
+      
       if (data) {
         setSettings({
           id: data.id,
@@ -83,14 +96,26 @@ export function LogoManager({ canEdit }: LogoManagerProps) {
 
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('logo-management', {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const response = await fetch('https://mqjtebcyrzmnapditxfj.supabase.co/functions/v1/logo-management/logo', {
         method: 'PUT',
-        body: updates
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1xanRlYmN5cnptbmFwZGl0eGZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ5MTUxNDAsImV4cCI6MjA3MDQ5MTE0MH0.awHBmuqwFW0urRUrZqCjcSD6vvZjyX-ERGJ-j73YLSk'
+        },
+        body: JSON.stringify(updates)
       });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update settings');
+      }
 
-      setSettings(prev => ({ ...prev, ...updates }));
+      const data = await response.json();
+      setSettings(prev => ({ ...prev, ...updates, ...data }));
       toast.success('Logo-Einstellungen gespeichert');
     } catch (error: any) {
       console.error('Error updating logo settings:', error);
@@ -125,16 +150,27 @@ export function LogoManager({ canEdit }: LogoManagerProps) {
     setUploadProgress(0);
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
       const formData = new FormData();
       formData.append('file', file);
 
-      const { data, error } = await supabase.functions.invoke('logo-management/upload', {
+      const response = await fetch('https://mqjtebcyrzmnapditxfj.supabase.co/functions/v1/logo-management/logo/upload', {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1xanRlYmN5cnptbmFwZGl0eGZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ5MTUxNDAsImV4cCI6MjA3MDQ5MTE0MH0.awHBmuqwFW0urRUrZqCjcSD6vvZjyX-ERGJ-j73YLSk'
+        },
         body: formData
       });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to upload logo');
+      }
 
+      const data = await response.json();
       setSettings(prev => ({ 
         ...prev, 
         logo_image_url: data.logo_image_url 
@@ -160,11 +196,22 @@ export function LogoManager({ canEdit }: LogoManagerProps) {
 
     setIsLoading(true);
     try {
-      const { error } = await supabase.functions.invoke('logo-management/image', {
-        method: 'DELETE'
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const response = await fetch('https://mqjtebcyrzmnapditxfj.supabase.co/functions/v1/logo-management/logo/image', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1xanRlYmN5cnptbmFwZGl0eGZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ5MTUxNDAsImV4cCI6MjA3MDQ5MTE0MH0.awHBmuqwFW0urRUrZqCjcSD6vvZjyX-ERGJ-j73YLSk'
+        }
       });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete logo');
+      }
 
       setSettings(prev => ({ 
         ...prev, 
