@@ -899,7 +899,7 @@ const [prodForm, setProdForm] = useState<any>({
                       currentUrl={catForm.image_url || ""}
                       onUpload={(url) => setCatForm({ ...catForm, image_url: url })}
                       bucketPath={`categories`}
-                      placeholder="Bild hier ablegen oder klicken – optimale Größe: 1000×800px (5:4)"
+                      placeholder="Bild hier ablegen oder klicken – optimale Größe: 700×400px (7:4)"
                       allowUrlInput
                     />
                     {catForm.image_url && (
