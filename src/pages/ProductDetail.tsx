@@ -196,7 +196,7 @@ export default function ProductDetail() {
       <div className="max-w-screen-xl mx-auto px-4 py-6 sm:py-10">
         <Seo title={seoTitle} description={seoDescription} canonicalPath={canonicalPath} />
         <div className="grid md:grid-cols-2 gap-6 md:gap-8">
-        <div>
+        <div className="w-full min-w-0">
           <ProductGallery
             productId={mapped.id}
             mainImageUrl={(dbProduct as any).main_image_url}
@@ -205,7 +205,7 @@ export default function ProductDetail() {
             videoUrl={mapped.youtubeUrl}
           />
         </div>
-        <div className="min-w-0">
+        <div className="w-full min-w-0">
           <h1 className="font-playfair text-2xl sm:text-3xl md:text-4xl break-words">{mapped.title}</h1>
           <p className="mt-2 text-muted-foreground break-words">{mapped.teaser}</p>
           <p className="mt-4 text-xl sm:text-2xl font-semibold break-words">{(mapped.priceCents / 100).toFixed(2)} € <span className="text-sm text-muted-foreground">({strings.product.priceInclVat})</span></p>
@@ -278,7 +278,7 @@ export default function ProductDetail() {
               </Card>
             )}
 
-            <Button type="submit" className="w-full h-12 text-sm sm:text-base">{strings.product.ctaInquiry}</Button>
+            <Button type="submit" className="w-full h-12 text-base font-medium">{strings.product.ctaInquiry}</Button>
           </form>
         </div>
       </div>

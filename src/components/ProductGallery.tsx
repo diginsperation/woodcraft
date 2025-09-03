@@ -159,12 +159,12 @@ export function ProductGallery({ productId, mainImageUrl, productTitle, videoMod
     );
   };
 
-  // Adaptive thumbnail sizing - mobile first approach
+  // Optimized thumbnail sizing for better mobile touch targets
   const getThumbnailSize = () => {
     const count = mediaItems.length;
-    if (count <= 4) return 'w-16 h-16 sm:w-20 sm:h-20'; // 64px mobile, 80px desktop
-    if (count <= 8) return 'w-14 h-14 sm:w-16 sm:h-16'; // 56px mobile, 64px desktop  
-    return 'w-12 h-12 sm:w-14 sm:h-14'; // 48px mobile, 56px desktop
+    if (count <= 4) return 'w-20 h-20 sm:w-24 sm:h-24'; // Larger for better touch
+    if (count <= 8) return 'w-16 h-16 sm:w-20 sm:h-20'; // Medium size
+    return 'w-14 h-14 sm:w-16 sm:h-16'; // Smaller for many items
   };
 
   const renderThumbnail = (item: typeof mediaItems[0], index: number) => {
@@ -174,10 +174,11 @@ export function ProductGallery({ productId, mainImageUrl, productTitle, videoMod
     return (
       <button
         key={`${item.type}-${index}`}
-        className={`relative ${sizeClasses} overflow-hidden rounded-md border-2 transition-all duration-200 hover:opacity-90 flex-shrink-0 ${
-          isActive ? 'border-primary ring-2 ring-primary/20' : 'border-border'
+        className={`relative ${sizeClasses} overflow-hidden rounded-md border-2 transition-all duration-200 hover:opacity-90 flex-shrink-0 touch-manipulation ${
+          isActive ? 'border-primary ring-2 ring-primary/30 shadow-sm' : 'border-border hover:border-primary/50'
         }`}
         onClick={() => handleThumbnailClick(index)}
+        aria-label={`${item.type === 'video' ? 'Video' : 'Bild'} ${index + 1} von ${mediaItems.length}`}
       >
         {item.type === 'video' ? (
           <div className="relative w-full h-full">
@@ -253,41 +254,43 @@ export function ProductGallery({ productId, mainImageUrl, productTitle, videoMod
   }
 
   return (
-    <div className="space-y-4" onKeyDown={handleKeyDown} tabIndex={0}>
-      {/* Main Display Area - Mobile responsive */}
-      <div className="relative aspect-square w-full overflow-hidden rounded-lg border bg-background">
+    <div className="w-full space-y-4" onKeyDown={handleKeyDown} tabIndex={0}>
+      {/* Main Display Area - 100% width, aspect-square maintained */}
+      <div className="relative aspect-square w-full overflow-hidden rounded-lg border bg-background group">
         {renderMainContent()}
         
-        {/* Navigation Arrows (Hidden on mobile, visible on desktop) */}
+        {/* Navigation Arrows - Desktop only */}
         {mediaItems.length > 1 && (
           <>
             <Button
               variant="outline"
               size="icon"
-              className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 hover:opacity-100 transition-opacity hidden sm:flex w-8 h-8 sm:w-10 sm:h-10"
+              className="absolute left-4 top-1/2 -translate-y-1/2 bg-background/90 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 hidden md:flex w-10 h-10 z-10"
               onClick={() => setActiveIndex(Math.max(0, activeIndex - 1))}
               disabled={activeIndex === 0}
             >
-              <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4" />
+              <ChevronLeft className="w-4 h-4" />
             </Button>
             <Button
               variant="outline"
               size="icon"
-              className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 hover:opacity-100 transition-opacity hidden sm:flex w-8 h-8 sm:w-10 sm:h-10"
+              className="absolute right-4 top-1/2 -translate-y-1/2 bg-background/90 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 hidden md:flex w-10 h-10 z-10"
               onClick={() => setActiveIndex(Math.min(mediaItems.length - 1, activeIndex + 1))}
               disabled={activeIndex === mediaItems.length - 1}
             >
-              <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
+              <ChevronRight className="w-4 h-4" />
             </Button>
           </>
         )}
       </div>
 
-      {/* Thumbnail Strip - Mobile-first horizontal scroll */}
+      {/* Thumbnail Strip - Horizontal scroll with proper mobile support */}
       {mediaItems.length > 1 && (
-        <div className="w-full overflow-x-auto scroll-smooth scrollbar-hide px-2 pb-2">
-          <div className="flex gap-2 flex-nowrap">
-            {mediaItems.map((item, index) => renderThumbnail(item, index))}
+        <div className="w-full">
+          <div className="overflow-x-auto scrollbar-hide scroll-smooth pb-2">
+            <div className="flex gap-2 px-1" style={{ width: 'max-content' }}>
+              {mediaItems.map((item, index) => renderThumbnail(item, index))}
+            </div>
           </div>
         </div>
       )}
