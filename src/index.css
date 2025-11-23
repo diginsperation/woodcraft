@@ -124,10 +124,10 @@ All colors MUST be HSL.
     opacity: 0.08;
     filter: blur(18px);
     pointer-events: none;
-    z-index: -1;
+    z-index: 0;
   }
-
-  /* Warm overlay gradient for branding atmosphere */
+ 
+   /* Warm overlay gradient for branding atmosphere */
   body::after {
     content: '';
     position: fixed;
