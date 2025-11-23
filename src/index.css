@@ -117,12 +117,12 @@ All colors MUST be HSL.
     transform: translate(-50%, -50%);
     width: min(90vw, 1000px);
     height: min(90vh, 1000px);
-    background-image: url('/src/assets/logo-watermark-main.jpg');
+    background-image: url('/logo-watermark-main.jpg');
     background-repeat: no-repeat;
     background-position: center center;
     background-size: contain;
-    opacity: 0.045;
-    filter: blur(25px);
+    opacity: 0.08;
+    filter: blur(18px);
     pointer-events: none;
     z-index: -1;
   }
@@ -148,7 +148,7 @@ All colors MUST be HSL.
     body::before {
       width: 700px;
       height: 700px;
-      opacity: 0.035;
+      opacity: 0.065;
     }
   }
 
@@ -156,8 +156,8 @@ All colors MUST be HSL.
     body::before {
       width: 500px;
       height: 500px;
-      opacity: 0.03;
-      filter: blur(30px);
+      opacity: 0.055;
+      filter: blur(22px);
     }
   }
 }
