@@ -15,7 +15,7 @@ import Datenschutz from "./pages/Datenschutz";
 import Widerruf from "./pages/Widerruf";
 import Impressum from "./pages/Impressum";
 import Admin from "./pages/admin/Admin";
-import "./App.css";
+
 
 const queryClient = new QueryClient();
 
@@ -24,26 +24,24 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <div className="app-watermark">
-        <BrowserRouter>
-          <Layout>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/products" element={<ProductList />} />
-              <Route path="/product/:slug" element={<ProductDetail />} />
-              <Route path="/checkout" element={<Checkout />} />
-              <Route path="/thank-you" element={<ThankYou />} />
-              <Route path="/agb" element={<AGB />} />
-              <Route path="/datenschutz" element={<Datenschutz />} />
-              <Route path="/widerruf" element={<Widerruf />} />
-              <Route path="/impressum" element={<Impressum />} />
-              <Route path="/admin" element={<Admin />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Layout>
-        </BrowserRouter>
-      </div>
+      <BrowserRouter>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/products" element={<ProductList />} />
+            <Route path="/product/:slug" element={<ProductDetail />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/thank-you" element={<ThankYou />} />
+            <Route path="/agb" element={<AGB />} />
+            <Route path="/datenschutz" element={<Datenschutz />} />
+            <Route path="/widerruf" element={<Widerruf />} />
+            <Route path="/impressum" element={<Impressum />} />
+            <Route path="/admin" element={<Admin />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Layout>
+      </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
 );
