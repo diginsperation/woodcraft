@@ -37,6 +37,15 @@ export default function Admin() {
   const [socialLinks, setSocialLinks] = useState<any[]>([]);
   const [footerContactData, setFooterContactData] = useState<any>(null);
   
+  const [headerForm, setHeaderForm] = useState<any>({ 
+    logo_text: "", 
+    logo_font: "Inter",
+    logo_color_light: "#1F2937",
+    logo_color_dark: "#F5F5F5",
+    logo_image_url: "",
+    logo_alt: "",
+    use_text_logo_if_image_fails: true
+  });
   const [heroForm, setHeroForm] = useState<any>({
     title: "",
     subtitle: "",
@@ -143,6 +152,17 @@ const [prodForm, setProdForm] = useState<any>({
     setSocialLinks(socials || []);
     setFooterContactData(footerContact);
     
+    if (header) {
+      setHeaderForm({ 
+        logo_text: header.logo_text || "", 
+        logo_font: header.logo_font || "Inter",
+        logo_color_light: header.logo_color_light || "#1F2937",
+        logo_color_dark: header.logo_color_dark || "#F5F5F5",
+        logo_image_url: header.logo_image_url || "",
+        logo_alt: header.logo_alt || "",
+        use_text_logo_if_image_fails: header.use_text_logo_if_image_fails ?? true
+      });
+    }
     if (hero) {
       setHeroForm({
         title: hero.title || "",
@@ -306,6 +326,26 @@ const [prodForm, setProdForm] = useState<any>({
   };
 
   // Homepage CRUD
+  const saveHeader = async () => {
+    if (!isEditor) return;
+    const payload = {
+      logo_text: headerForm.logo_text || null,
+      logo_font: headerForm.logo_font || 'Inter',
+      logo_color_light: headerForm.logo_color_light || '#1F2937',
+      logo_color_dark: headerForm.logo_color_dark || '#F5F5F5',
+      logo_image_url: headerForm.logo_image_url || null,
+      logo_alt: headerForm.logo_alt || null,
+      use_text_logo_if_image_fails: headerForm.use_text_logo_if_image_fails ?? true,
+      is_active: true
+    };
+    const { error } = headerData?.id
+      ? await supabase.from("homepage_header").update(payload).eq("id", headerData.id)
+      : await supabase.from("homepage_header").insert(payload);
+    if (error) return toast.error(error.message);
+    await loadHomepageData();
+    toast.success("Header/Logo gespeichert");
+  };
+
   const saveHero = async () => {
     if (!isEditor) return;
     const payload = {
@@ -517,6 +557,69 @@ const [prodForm, setProdForm] = useState<any>({
         <TabsContent value="homepage" className="mt-6">
           <div className="space-y-8">
             <LogoManager canEdit={isEditor} />
+            
+            <Card>
+              <CardContent className="pt-6">
+                <h2 className="font-medium mb-4">Header/Logo bearbeiten (Legacy-Zugriff)</h2>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Diese Felder zeigen dieselben Daten wie die Logo-Verwaltung oben. Änderungen hier werden auch dort sichtbar.
+                </p>
+                <div className="space-y-3">
+                  <div>
+                    <Label>Logo-Text</Label>
+                    <Input 
+                      value={headerForm.logo_text} 
+                      onChange={(e) => setHeaderForm({ ...headerForm, logo_text: e.target.value })} 
+                      placeholder="z.B. LeonHolz"
+                    />
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-3">
+                    <div>
+                      <Label>Schriftart</Label>
+                      <select 
+                        className="w-full h-10 rounded-md border bg-background px-3"
+                        value={headerForm.logo_font}
+                        onChange={(e) => setHeaderForm({ ...headerForm, logo_font: e.target.value })}
+                      >
+                        <option value="Inter">Inter (Modern Sans)</option>
+                        <option value="Playfair Display">Playfair Display (Elegant Serif)</option>
+                        <option value="Fraunces">Fraunces (Creative Serif)</option>
+                        <option value="System">System Default</option>
+                      </select>
+                    </div>
+                    <div>
+                      <Label>Logo-Bild URL</Label>
+                      <Input 
+                        value={headerForm.logo_image_url} 
+                        onChange={(e) => setHeaderForm({ ...headerForm, logo_image_url: e.target.value })} 
+                        placeholder="https://..."
+                        disabled
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">Bild-Upload bitte oben in der Logo-Verwaltung verwenden</p>
+                    </div>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-3">
+                    <div>
+                      <Label>Farbe (Hell)</Label>
+                      <Input 
+                        type="color"
+                        value={headerForm.logo_color_light} 
+                        onChange={(e) => setHeaderForm({ ...headerForm, logo_color_light: e.target.value })} 
+                      />
+                    </div>
+                    <div>
+                      <Label>Farbe (Dunkel)</Label>
+                      <Input 
+                        type="color"
+                        value={headerForm.logo_color_dark} 
+                        onChange={(e) => setHeaderForm({ ...headerForm, logo_color_dark: e.target.value })} 
+                      />
+                    </div>
+                  </div>
+                  <Button onClick={saveHeader} disabled={!isEditor}>Header/Logo speichern</Button>
+                </div>
+              </CardContent>
+            </Card>
 
             <Card>
               <CardContent className="pt-6">
