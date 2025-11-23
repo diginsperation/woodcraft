@@ -15,9 +15,21 @@ const iconMap: Record<string, any> = {
   link: LinkIcon,
 };
 
+interface LogoData {
+  logo_text?: string;
+  logo_font?: string;
+  logo_color_light?: string;
+  logo_color_dark?: string;
+  logo_image_url?: string;
+  logo_alt?: string;
+  use_text_logo_if_image_fails?: boolean;
+}
+
 export default function Footer() {
   const [socialLinks, setSocialLinks] = useState<any[]>([]);
   const [footerContact, setFooterContact] = useState<any>(null);
+  const [logoData, setLogoData] = useState<LogoData | null>(null);
+  const [imageLoadError, setImageLoadError] = useState(false);
 
   useEffect(() => {
     // fetch social links
@@ -26,12 +38,72 @@ export default function Footer() {
     // fetch footer contact
     supabase.from("footer_contact_block").select("*").maybeSingle()
       .then(({ data }) => setFooterContact(data));
+    // fetch logo data
+    supabase.from("homepage_header")
+      .select("logo_text, logo_font, logo_color_light, logo_color_dark, logo_image_url, logo_alt, use_text_logo_if_image_fails")
+      .eq("is_active", true)
+      .maybeSingle()
+      .then(({ data }) => {
+        setLogoData(data);
+        setImageLoadError(false);
+      });
   }, []);
+
+  const getFontFamily = (font?: string) => {
+    switch (font) {
+      case 'Fraunces': return 'Fraunces, serif';
+      case 'Playfair Display': return 'Playfair Display, serif';
+      case 'Inter': return 'Inter, sans-serif';
+      case 'System': return 'system-ui, sans-serif';
+      default: return 'Inter, sans-serif';
+    }
+  };
+
+  const LogoComponent = () => {
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    const currentColor = isDarkMode 
+      ? (logoData?.logo_color_dark || '#F5F5F5')
+      : (logoData?.logo_color_light || '#1F2937');
+
+    const shouldShowImage = logoData?.logo_image_url && !imageLoadError;
+    const shouldShowText = !logoData?.logo_image_url || 
+                           (imageLoadError && logoData?.use_text_logo_if_image_fails);
+
+    return (
+      <Link to="/" className="inline-block mb-4">
+        {shouldShowImage && (
+          <img 
+            src={logoData.logo_image_url} 
+            alt={logoData.logo_alt || `${logoData.logo_text || strings.brandName} Logo`}
+            className="h-8 object-contain"
+            onError={() => {
+              if (logoData?.use_text_logo_if_image_fails) {
+                setImageLoadError(true);
+              }
+            }}
+          />
+        )}
+        
+        {shouldShowText && (
+          <span 
+            className="font-semibold text-xl"
+            style={{ 
+              fontFamily: getFontFamily(logoData?.logo_font),
+              color: currentColor
+            }}
+          >
+            {logoData?.logo_text || strings.brandName}
+          </span>
+        )}
+      </Link>
+    );
+  };
 
   return (
     <footer id="contact" className="border-t bg-background">
       <div className="container py-10 grid gap-8 md:grid-cols-3">
         <div>
+          <LogoComponent />
           <h3 className="font-playfair text-xl mb-3">{strings.nav.contact}</h3>
           {footerContact?.content_rich ? (
             <div 
