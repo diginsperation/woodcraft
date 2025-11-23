@@ -23,13 +23,13 @@ export function ProductCard({ product }: { product: Product | ProductWithImages 
     ('base_price' in product ? product.base_price : 0);
   
   return (
-    <article className="rounded-lg border bg-card overflow-hidden hover:shadow-md transition-shadow">
-      <div className="aspect-[4/3] bg-muted/50">
+    <article className="group rounded-xl border border-[hsl(var(--app-border))] bg-[hsl(var(--app-surface))] overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 ease-out">
+      <div className="aspect-[4/3] bg-muted/50 overflow-hidden">
         {cardImageSrc ? (
           <img 
             src={cardImageSrc} 
             alt={cardImageAlt} 
-            className="w-full h-full object-contain" 
+            className="w-full h-full object-contain transition-transform duration-300 ease-out group-hover:scale-105" 
             loading="lazy"
             sizes="(max-width: 480px) 280px, (max-width: 768px) 320px, (max-width: 1024px) 380px, (max-width: 1280px) 400px, 480px"
             srcSet={`${cardImageSrc}?w=280 280w, ${cardImageSrc}?w=320 320w, ${cardImageSrc}?w=380 380w, ${cardImageSrc}?w=400 400w, ${cardImageSrc}?w=480 480w, ${cardImageSrc}?w=760 760w`}

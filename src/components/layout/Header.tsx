@@ -126,7 +126,9 @@ export default function Header() {
   const headerHeight = Math.max(64, baseHeight + 24); // min 64px, or logo + padding
   
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur">
+    <header 
+      className="sticky top-0 z-50 w-full border-b border-[hsl(var(--app-border))] bg-[hsl(var(--app-surface))]/80 backdrop-blur-md supports-[backdrop-filter]:bg-[hsl(var(--app-surface))]/70 shadow-sm"
+    >
       <div 
         className="container flex items-center justify-between"
         style={{ 
@@ -135,7 +137,11 @@ export default function Header() {
           paddingBottom: '12px'
         }}
       >
-        <Link to="/" className="flex items-center shrink-0">
+        <Link 
+          to="/" 
+          className="flex items-center shrink-0 transition-transform duration-200 ease-out hover:scale-[1.02]"
+          aria-label={`${headerData?.logo_text || strings.brandName} Home`}
+        >
           <LogoComponent />
         </Link>
 
