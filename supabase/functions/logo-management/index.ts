@@ -28,30 +28,41 @@ serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(
+    // Create admin client with service role for auth checks
+    const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
-        },
-      }
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Check user permissions
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    // Create user client with user's token for data operations
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Missing authorization header' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    const token = authHeader.replace('Bearer ', '')
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
+    
     if (authError || !user) {
+      console.error('Auth error:', authError)
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
+    console.log('User authenticated:', user.id)
+
     // Check if user has editor or admin role
-    const { data: roles } = await supabase
+    const { data: roles } = await supabaseAdmin
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
+    
+    console.log('User roles:', roles)
     
     const hasPermission = roles?.some(r => r.role === 'admin' || r.role === 'editor')
     if (!hasPermission) {
@@ -60,6 +71,9 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
+    
+    // Use admin client for all database operations
+    const supabase = supabaseAdmin
 
     const url = new URL(req.url)
     const method = req.method
