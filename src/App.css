@@ -40,3 +40,29 @@
 .read-the-docs {
   color: #888;
 }
+
+/* global watermark background */
+.app-watermark::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-image: url('/logo-watermark-main.jpg');
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: min(90vw, 1000px);
+  opacity: 0.04;
+  filter: blur(25px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .app-watermark::before {
+    background-size: 500px;
+    opacity: 0.03;
+    filter: blur(30px);
+  }
+}
