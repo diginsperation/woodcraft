@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { strings } from "@/content/strings.de";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface LogoData {
   logo_text?: string;
@@ -20,6 +21,7 @@ interface LogoData {
 export default function Header() {
   const [headerData, setHeaderData] = useState<LogoData | null>(null);
   const [imageLoadError, setImageLoadError] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     // Load header data with new logo fields
@@ -56,10 +58,9 @@ export default function Header() {
       (imageLoadError && headerData?.use_text_logo_if_image_fails)
     );
 
-    // Responsive sizing
+    // Responsive sizing based on device
     const baseHeight = headerData?.logo_max_height || 40;
-    const isMobile = window.innerWidth < 640;
-    const isTablet = window.innerWidth >= 640 && window.innerWidth < 1024;
+    const isTablet = !isMobile && window.innerWidth < 1024;
     
     let effectiveHeight = baseHeight;
     if (isMobile) {
@@ -68,28 +69,31 @@ export default function Header() {
       effectiveHeight = Math.min(baseHeight, 32);
     }
 
-    const logoMaxHeight = `${effectiveHeight}px`;
+    const logoMaxHeight = effectiveHeight;
     const logoMaxWidth = headerData?.logo_max_width === 'auto' || !headerData?.logo_max_width 
       ? 'auto' 
-      : `${headerData.logo_max_width}px`;
-    const logoGap = `${Math.min(headerData?.logo_gap || 8, isMobile ? 8 : 999)}px`;
+      : headerData.logo_max_width;
+    const logoGap = Math.min(headerData?.logo_gap || 8, isMobile ? 8 : 16);
 
     return (
       <div 
         className="flex items-center" 
-        style={{ gap: logoGap }}
+        style={{ 
+          gap: `${logoGap}px`,
+          maxHeight: `${logoMaxHeight}px`
+        }}
       >
         {hasImage && (
           <img 
             src={headerData.logo_image_url} 
             alt={headerData.logo_alt || `${headerData.logo_text || strings.brandName} Logo`}
             style={{
-              maxHeight: logoMaxHeight,
-              maxWidth: logoMaxWidth,
+              maxHeight: `${logoMaxHeight}px`,
+              maxWidth: logoMaxWidth === 'auto' ? 'none' : `${logoMaxWidth}px`,
               height: 'auto',
               width: 'auto',
               objectFit: 'contain',
-              objectPosition: 'center left'
+              objectPosition: 'left center'
             }}
             onError={() => {
               if (headerData?.use_text_logo_if_image_fails) {
@@ -101,7 +105,7 @@ export default function Header() {
         
         {(showText || !hasImage) && (
           <span 
-            className="font-semibold text-xl"
+            className="font-semibold text-xl leading-none whitespace-nowrap"
             style={{ 
               fontFamily: getFontFamily(headerData?.logo_font),
               color: currentColor
@@ -117,10 +121,21 @@ export default function Header() {
   const linkCls = ({ isActive }: { isActive: boolean }) =>
     `px-3 py-2 rounded-md transition-colors ${isActive ? "bg-accent text-foreground" : "hover:bg-accent"}`;
   
+  // Calculate dynamic header height based on logo size
+  const baseHeight = headerData?.logo_max_height || 40;
+  const headerHeight = Math.max(64, baseHeight + 24); // min 64px, or logo + padding
+  
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur">
-      <div className="container h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center">
+      <div 
+        className="container flex items-center justify-between"
+        style={{ 
+          minHeight: `${headerHeight}px`,
+          paddingTop: '12px',
+          paddingBottom: '12px'
+        }}
+      >
+        <Link to="/" className="flex items-center shrink-0">
           <LogoComponent />
         </Link>
 

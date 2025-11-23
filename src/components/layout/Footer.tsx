@@ -3,6 +3,7 @@ import { strings } from "@/content/strings.de";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const iconMap: Record<string, any> = {
   mail: Mail,
@@ -34,6 +35,7 @@ export default function Footer() {
   const [footerContact, setFooterContact] = useState<any>(null);
   const [logoData, setLogoData] = useState<LogoData | null>(null);
   const [imageLoadError, setImageLoadError] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     // fetch social links
@@ -76,10 +78,9 @@ export default function Footer() {
       (imageLoadError && logoData?.use_text_logo_if_image_fails)
     );
 
-    // Responsive sizing
+    // Responsive sizing based on device
     const baseHeight = logoData?.logo_max_height || 40;
-    const isMobile = window.innerWidth < 640;
-    const isTablet = window.innerWidth >= 640 && window.innerWidth < 1024;
+    const isTablet = !isMobile && window.innerWidth < 1024;
     
     let effectiveHeight = baseHeight;
     if (isMobile) {
@@ -88,25 +89,32 @@ export default function Footer() {
       effectiveHeight = Math.min(baseHeight, 32);
     }
 
-    const logoMaxHeight = `${effectiveHeight}px`;
+    const logoMaxHeight = effectiveHeight;
     const logoMaxWidth = logoData?.logo_max_width === 'auto' || !logoData?.logo_max_width 
       ? 'auto' 
-      : `${logoData.logo_max_width}px`;
-    const logoGap = `${Math.min(logoData?.logo_gap || 8, isMobile ? 8 : 999)}px`;
+      : logoData.logo_max_width;
+    const logoGap = Math.min(logoData?.logo_gap || 8, isMobile ? 8 : 16);
 
     return (
-      <Link to="/" className="inline-flex items-center mb-4" style={{ gap: logoGap }}>
+      <Link 
+        to="/" 
+        className="inline-flex items-center mb-4" 
+        style={{ 
+          gap: `${logoGap}px`,
+          maxHeight: `${logoMaxHeight}px`
+        }}
+      >
         {hasImage && (
           <img 
             src={logoData.logo_image_url} 
             alt={logoData.logo_alt || `${logoData.logo_text || strings.brandName} Logo`}
             style={{
-              maxHeight: logoMaxHeight,
-              maxWidth: logoMaxWidth,
+              maxHeight: `${logoMaxHeight}px`,
+              maxWidth: logoMaxWidth === 'auto' ? 'none' : `${logoMaxWidth}px`,
               height: 'auto',
               width: 'auto',
               objectFit: 'contain',
-              objectPosition: 'center left'
+              objectPosition: 'left center'
             }}
             onError={() => {
               if (logoData?.use_text_logo_if_image_fails) {
@@ -118,7 +126,7 @@ export default function Footer() {
         
         {(showText || !hasImage) && (
           <span 
-            className="font-semibold text-xl"
+            className="font-semibold text-xl leading-none whitespace-nowrap"
             style={{ 
               fontFamily: getFontFamily(logoData?.logo_font),
               color: currentColor
