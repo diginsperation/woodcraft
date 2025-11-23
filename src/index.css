@@ -9,7 +9,7 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* Brand palette (HSL) */
-    --background: 0 0% 100%;
+    --background: 28 25% 97%; /* warmes Off-White statt reines Weiß */
     --foreground: 0 0% 12%; /* #1F1F1F */
 
     --card: 0 0% 100%;
@@ -38,6 +38,11 @@ All colors MUST be HSL.
     --ring: 29 59% 48%;
 
     --radius: 0.5rem;
+
+    /* Globales Hintergrund-System */
+    --app-bg-base: 28 25% 97%;
+    --app-surface: 0 0% 100%;
+    --app-border: 22 30% 90%;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 0 0% 20%;
@@ -95,7 +100,12 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    background: 
+      radial-gradient(ellipse at top, hsl(var(--primary) / 0.03) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom right, hsl(var(--accent) / 0.05) 0%, transparent 40%),
+      linear-gradient(180deg, hsl(var(--app-bg-base)) 0%, hsl(var(--background)) 100%);
+    background-attachment: fixed;
   }
 }
 
