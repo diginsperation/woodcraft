@@ -530,14 +530,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      ensure_unique_category_slug: {
-        Args: { base: string }
-        Returns: string
-      }
-      ensure_unique_product_slug: {
-        Args: { base: string }
-        Returns: string
-      }
+      ensure_unique_category_slug: { Args: { base: string }; Returns: string }
+      ensure_unique_product_slug: { Args: { base: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -545,10 +539,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      slugify: {
-        Args: { input: string }
-        Returns: string
-      }
+      slugify: { Args: { input: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "editor" | "viewer"
