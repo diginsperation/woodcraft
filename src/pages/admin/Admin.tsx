@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Seo } from "@/components/Seo";
@@ -44,7 +45,8 @@ export default function Admin() {
     logo_color_dark: "#F5F5F5",
     logo_image_url: "",
     logo_alt: "",
-    use_text_logo_if_image_fails: true
+    use_text_logo_if_image_fails: true,
+    show_text_with_image: true
   });
   const [heroForm, setHeroForm] = useState<any>({
     title: "",
@@ -160,7 +162,8 @@ const [prodForm, setProdForm] = useState<any>({
         logo_color_dark: header.logo_color_dark || "#F5F5F5",
         logo_image_url: header.logo_image_url || "",
         logo_alt: header.logo_alt || "",
-        use_text_logo_if_image_fails: header.use_text_logo_if_image_fails ?? true
+        use_text_logo_if_image_fails: header.use_text_logo_if_image_fails ?? true,
+        show_text_with_image: header.show_text_with_image ?? true
       });
     }
     if (hero) {
@@ -336,6 +339,7 @@ const [prodForm, setProdForm] = useState<any>({
       logo_image_url: headerForm.logo_image_url || null,
       logo_alt: headerForm.logo_alt || null,
       use_text_logo_if_image_fails: headerForm.use_text_logo_if_image_fails ?? true,
+      show_text_with_image: headerForm.show_text_with_image ?? true,
       is_active: true
     };
     const { error } = headerData?.id
@@ -616,6 +620,31 @@ const [prodForm, setProdForm] = useState<any>({
                       />
                     </div>
                   </div>
+                  
+                  <div className="flex flex-col gap-3 pt-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="legacy_show_text_with_image">Text neben Bild-Logo anzeigen</Label>
+                      <Switch
+                        id="legacy_show_text_with_image"
+                        checked={headerForm.show_text_with_image}
+                        onCheckedChange={(checked) =>
+                          setHeaderForm({ ...headerForm, show_text_with_image: checked })
+                        }
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="legacy_use_text_fallback">Text als Fallback bei Bild-Fehler</Label>
+                      <Switch
+                        id="legacy_use_text_fallback"
+                        checked={headerForm.use_text_logo_if_image_fails}
+                        onCheckedChange={(checked) =>
+                          setHeaderForm({ ...headerForm, use_text_logo_if_image_fails: checked })
+                        }
+                      />
+                    </div>
+                  </div>
+                  
                   <Button onClick={saveHeader} disabled={!isEditor}>Header/Logo speichern</Button>
                 </div>
               </CardContent>

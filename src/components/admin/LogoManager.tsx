@@ -19,6 +19,7 @@ interface LogoSettings {
   logo_image_url?: string;
   logo_alt?: string;
   use_text_logo_if_image_fails?: boolean;
+  show_text_with_image?: boolean;
 }
 
 interface LogoManagerProps {
@@ -71,7 +72,8 @@ export function LogoManager({ canEdit }: LogoManagerProps) {
           logo_color_dark: data.logo_color_dark || '#F5F5F5',
           logo_image_url: data.logo_image_url || '',
           logo_alt: data.logo_alt || '',
-          use_text_logo_if_image_fails: data.use_text_logo_if_image_fails ?? true
+          use_text_logo_if_image_fails: data.use_text_logo_if_image_fails ?? true,
+          show_text_with_image: data.show_text_with_image ?? true
         });
       }
     } catch (error: any) {
@@ -92,6 +94,7 @@ export function LogoManager({ canEdit }: LogoManagerProps) {
       if (updates.logo_color_dark !== undefined) payload.logo_color_dark = updates.logo_color_dark;
       if (updates.logo_alt !== undefined) payload.logo_alt = updates.logo_alt;
       if (updates.use_text_logo_if_image_fails !== undefined) payload.use_text_logo_if_image_fails = updates.use_text_logo_if_image_fails;
+      if (updates.show_text_with_image !== undefined) payload.show_text_with_image = updates.show_text_with_image;
       
       payload.is_active = true;
 
@@ -229,42 +232,41 @@ export function LogoManager({ canEdit }: LogoManagerProps) {
     const logoHeight = isMobilePreview ? '32px' : '48px';
     const fontSize = isMobilePreview ? '1.25rem' : '1.5rem';
     
+    const hasImage = settings.logo_image_url;
+    const showText = settings.logo_text && (
+      !hasImage || 
+      settings.show_text_with_image === true
+    );
+    
     return (
       <div 
         className="p-6 rounded-lg border transition-colors duration-200"
         style={{ backgroundColor }}
       >
         <div className="flex items-center justify-center min-h-[60px]">
-          {settings.logo_image_url ? (
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            {hasImage && (
               <img 
                 src={settings.logo_image_url}
                 alt={settings.logo_alt || `${settings.logo_text} Logo`}
                 style={{ height: logoHeight, width: 'auto' }}
                 className="object-contain"
-                onError={() => {
-                  if (settings.use_text_logo_if_image_fails) {
-                    // This would trigger fallback to text logo in real implementation
-                    console.log('Image failed, would fallback to text logo');
-                  }
-                }}
               />
-              {settings.use_text_logo_if_image_fails && (
-                <span className="text-xs text-muted-foreground ml-2">(mit Text-Fallback)</span>
-              )}
-            </div>
-          ) : (
-            <div 
-              style={{ 
-                color: currentColor,
-                fontFamily: getFontFamily(settings.logo_font || 'Inter'),
-                fontSize,
-                fontWeight: 600
-              }}
-            >
-              {settings.logo_text || 'Logo Text'}
-            </div>
-          )}
+            )}
+            
+            {showText && (
+              <div 
+                style={{ 
+                  color: currentColor,
+                  fontFamily: getFontFamily(settings.logo_font || 'Inter'),
+                  fontSize,
+                  fontWeight: 600
+                }}
+              >
+                {settings.logo_text || 'Logo Text'}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -437,19 +439,36 @@ export function LogoManager({ canEdit }: LogoManagerProps) {
               />
             </div>
 
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="useFallback"
-                checked={settings.use_text_logo_if_image_fails}
-                onCheckedChange={(checked) => {
-                  setSettings(prev => ({ ...prev, use_text_logo_if_image_fails: checked }));
-                  updateSettings({ use_text_logo_if_image_fails: checked });
-                }}
-                disabled={!canEdit || isLoading}
-              />
-              <Label htmlFor="useFallback">
-                Text-Logo als Fallback verwenden wenn Bild nicht lädt
-              </Label>
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="showTextWithImage"
+                  checked={settings.show_text_with_image ?? true}
+                  onCheckedChange={(checked) => {
+                    setSettings(prev => ({ ...prev, show_text_with_image: checked }));
+                    updateSettings({ show_text_with_image: checked });
+                  }}
+                  disabled={!canEdit || isLoading}
+                />
+                <Label htmlFor="showTextWithImage">
+                  Text neben dem Bild-Logo anzeigen
+                </Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="useFallback"
+                  checked={settings.use_text_logo_if_image_fails}
+                  onCheckedChange={(checked) => {
+                    setSettings(prev => ({ ...prev, use_text_logo_if_image_fails: checked }));
+                    updateSettings({ use_text_logo_if_image_fails: checked });
+                  }}
+                  disabled={!canEdit || isLoading}
+                />
+                <Label htmlFor="useFallback">
+                  Text-Logo als Fallback verwenden wenn Bild nicht lädt
+                </Label>
+              </div>
             </div>
           </div>
         </CardContent>

@@ -11,6 +11,7 @@ interface LogoData {
   logo_image_url?: string;
   logo_alt?: string;
   use_text_logo_if_image_fails?: boolean;
+  show_text_with_image?: boolean;
 }
 
 export default function Header() {
@@ -20,7 +21,7 @@ export default function Header() {
   useEffect(() => {
     // Load header data with new logo fields
     supabase.from("homepage_header")
-      .select("logo_text, logo_font, logo_color_light, logo_color_dark, logo_image_url, logo_alt, use_text_logo_if_image_fails")
+      .select("logo_text, logo_font, logo_color_light, logo_color_dark, logo_image_url, logo_alt, use_text_logo_if_image_fails, show_text_with_image")
       .eq("is_active", true)
       .maybeSingle()
       .then(({ data }) => {
@@ -48,6 +49,7 @@ export default function Header() {
     const hasImage = headerData?.logo_image_url && !imageLoadError;
     const showText = headerData?.logo_text && (
       !headerData?.logo_image_url || 
+      (headerData?.show_text_with_image === true) ||
       (imageLoadError && headerData?.use_text_logo_if_image_fails)
     );
 

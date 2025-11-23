@@ -23,6 +23,7 @@ interface LogoData {
   logo_image_url?: string;
   logo_alt?: string;
   use_text_logo_if_image_fails?: boolean;
+  show_text_with_image?: boolean;
 }
 
 export default function Footer() {
@@ -40,7 +41,7 @@ export default function Footer() {
       .then(({ data }) => setFooterContact(data));
     // fetch logo data
     supabase.from("homepage_header")
-      .select("logo_text, logo_font, logo_color_light, logo_color_dark, logo_image_url, logo_alt, use_text_logo_if_image_fails")
+      .select("logo_text, logo_font, logo_color_light, logo_color_dark, logo_image_url, logo_alt, use_text_logo_if_image_fails, show_text_with_image")
       .eq("is_active", true)
       .maybeSingle()
       .then(({ data }) => {
@@ -68,6 +69,7 @@ export default function Footer() {
     const hasImage = logoData?.logo_image_url && !imageLoadError;
     const showText = logoData?.logo_text && (
       !logoData?.logo_image_url || 
+      (logoData?.show_text_with_image === true) ||
       (imageLoadError && logoData?.use_text_logo_if_image_fails)
     );
 
