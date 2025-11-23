@@ -13,6 +13,8 @@ interface LogoData {
   use_text_logo_if_image_fails?: boolean;
   show_text_with_image?: boolean;
   logo_max_height?: number;
+  logo_max_width?: string;
+  logo_gap?: number;
 }
 
 export default function Header() {
@@ -22,7 +24,7 @@ export default function Header() {
   useEffect(() => {
     // Load header data with new logo fields
     supabase.from("homepage_header")
-      .select("logo_text, logo_font, logo_color_light, logo_color_dark, logo_image_url, logo_alt, use_text_logo_if_image_fails, show_text_with_image, logo_max_height")
+      .select("logo_text, logo_font, logo_color_light, logo_color_dark, logo_image_url, logo_alt, use_text_logo_if_image_fails, show_text_with_image, logo_max_height, logo_max_width, logo_gap")
       .eq("is_active", true)
       .maybeSingle()
       .then(({ data }) => {
@@ -53,20 +55,42 @@ export default function Header() {
       (headerData?.show_text_with_image === true) ||
       (imageLoadError && headerData?.use_text_logo_if_image_fails)
     );
-    const logoHeight = headerData?.logo_max_height || 40;
+
+    // Responsive sizing
+    const baseHeight = headerData?.logo_max_height || 40;
+    const isMobile = window.innerWidth < 640;
+    const isTablet = window.innerWidth >= 640 && window.innerWidth < 1024;
+    
+    let effectiveHeight = baseHeight;
+    if (isMobile) {
+      effectiveHeight = Math.min(baseHeight, 28);
+    } else if (isTablet) {
+      effectiveHeight = Math.min(baseHeight, 32);
+    }
+
+    const logoMaxHeight = `${effectiveHeight}px`;
+    const logoMaxWidth = headerData?.logo_max_width === 'auto' || !headerData?.logo_max_width 
+      ? 'auto' 
+      : `${headerData.logo_max_width}px`;
+    const logoGap = `${Math.min(headerData?.logo_gap || 8, isMobile ? 8 : 999)}px`;
 
     return (
-      <div className="flex items-center gap-3">
+      <div 
+        className="flex items-center" 
+        style={{ gap: logoGap }}
+      >
         {hasImage && (
           <img 
             src={headerData.logo_image_url} 
             alt={headerData.logo_alt || `${headerData.logo_text || strings.brandName} Logo`}
             style={{
-              maxHeight: `${logoHeight}px`,
+              maxHeight: logoMaxHeight,
+              maxWidth: logoMaxWidth,
               height: 'auto',
-              width: 'auto'
+              width: 'auto',
+              objectFit: 'contain',
+              objectPosition: 'center left'
             }}
-            className="object-contain"
             onError={() => {
               if (headerData?.use_text_logo_if_image_fails) {
                 setImageLoadError(true);
