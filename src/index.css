@@ -109,41 +109,55 @@ All colors MUST be HSL.
     background-attachment: fixed;
   }
 
-  body::before,
+  body::before {
+    content: '';
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(90vw, 1000px);
+    height: min(90vh, 1000px);
+    background-image: url('/src/assets/logo-watermark-main.jpg');
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: contain;
+    opacity: 0.045;
+    filter: blur(25px);
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  /* Warm overlay gradient for branding atmosphere */
   body::after {
     content: '';
     position: fixed;
-    background-size: contain;
-    background-repeat: no-repeat;
-    opacity: 0.02;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(
+      circle at 30% 20%,
+      hsl(var(--primary) / 0.08),
+      transparent 70%
+    );
     pointer-events: none;
-    z-index: 0;
+    z-index: -1;
   }
 
-  body::before {
-    top: 10%;
-    right: 5%;
-    width: 300px;
-    height: 400px;
-    background-image: url('/src/assets/logo-watermark-1.jpg');
-    background-position: center;
-  }
-
-  body::after {
-    bottom: 10%;
-    left: 5%;
-    width: 280px;
-    height: 380px;
-    background-image: url('/src/assets/logo-watermark-2.jpg');
-    background-position: center;
+  @media (max-width: 1024px) {
+    body::before {
+      width: 700px;
+      height: 700px;
+      opacity: 0.035;
+    }
   }
 
   @media (max-width: 768px) {
-    body::before,
-    body::after {
-      opacity: 0.015;
-      width: 200px;
-      height: 280px;
+    body::before {
+      width: 500px;
+      height: 500px;
+      opacity: 0.03;
+      filter: blur(30px);
     }
   }
 }
