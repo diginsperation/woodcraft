@@ -101,11 +101,50 @@ All colors MUST be HSL.
 
   body {
     @apply text-foreground;
+    position: relative;
     background: 
       radial-gradient(ellipse at top, hsl(var(--primary) / 0.03) 0%, transparent 50%),
       radial-gradient(ellipse at bottom right, hsl(var(--accent) / 0.05) 0%, transparent 40%),
       linear-gradient(180deg, hsl(var(--app-bg-base)) 0%, hsl(var(--background)) 100%);
     background-attachment: fixed;
+  }
+
+  body::before,
+  body::after {
+    content: '';
+    position: fixed;
+    background-size: contain;
+    background-repeat: no-repeat;
+    opacity: 0.02;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::before {
+    top: 10%;
+    right: 5%;
+    width: 300px;
+    height: 400px;
+    background-image: url('/src/assets/logo-watermark-1.jpg');
+    background-position: center;
+  }
+
+  body::after {
+    bottom: 10%;
+    left: 5%;
+    width: 280px;
+    height: 380px;
+    background-image: url('/src/assets/logo-watermark-2.jpg');
+    background-position: center;
+  }
+
+  @media (max-width: 768px) {
+    body::before,
+    body::after {
+      opacity: 0.015;
+      width: 200px;
+      height: 280px;
+    }
   }
 }
 
