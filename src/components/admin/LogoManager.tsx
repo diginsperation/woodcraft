@@ -20,6 +20,8 @@ interface LogoSettings {
   logo_alt?: string;
   use_text_logo_if_image_fails?: boolean;
   show_text_with_image?: boolean;
+  logo_max_height?: number;
+  logo_resize_target?: number;
 }
 
 interface LogoManagerProps {
@@ -40,7 +42,9 @@ export function LogoManager({ canEdit }: LogoManagerProps) {
     logo_color_light: '#1F2937',
     logo_color_dark: '#F5F5F5',
     logo_alt: '',
-    use_text_logo_if_image_fails: true
+    use_text_logo_if_image_fails: true,
+    logo_max_height: 40,
+    logo_resize_target: 512
   });
   
   const [isLoading, setIsLoading] = useState(false);
@@ -73,7 +77,9 @@ export function LogoManager({ canEdit }: LogoManagerProps) {
           logo_image_url: data.logo_image_url || '',
           logo_alt: data.logo_alt || '',
           use_text_logo_if_image_fails: data.use_text_logo_if_image_fails ?? true,
-          show_text_with_image: data.show_text_with_image ?? true
+          show_text_with_image: data.show_text_with_image ?? true,
+          logo_max_height: data.logo_max_height ?? 40,
+          logo_resize_target: data.logo_resize_target ?? 512
         });
       }
     } catch (error: any) {
@@ -95,6 +101,8 @@ export function LogoManager({ canEdit }: LogoManagerProps) {
       if (updates.logo_alt !== undefined) payload.logo_alt = updates.logo_alt;
       if (updates.use_text_logo_if_image_fails !== undefined) payload.use_text_logo_if_image_fails = updates.use_text_logo_if_image_fails;
       if (updates.show_text_with_image !== undefined) payload.show_text_with_image = updates.show_text_with_image;
+      if (updates.logo_max_height !== undefined) payload.logo_max_height = updates.logo_max_height;
+      if (updates.logo_resize_target !== undefined) payload.logo_resize_target = updates.logo_resize_target;
       
       payload.is_active = true;
 
@@ -114,6 +122,57 @@ export function LogoManager({ canEdit }: LogoManagerProps) {
     }
   };
 
+  const resizeImage = (file: File, targetSize: number): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Canvas context not available'));
+          return;
+        }
+
+        // Calculate proportional dimensions
+        let { width, height } = img;
+        const maxDimension = Math.max(width, height);
+        
+        if (maxDimension > targetSize) {
+          const scale = targetSize / maxDimension;
+          width = Math.round(width * scale);
+          height = Math.round(height * scale);
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              reject(new Error('Failed to create blob'));
+            }
+          },
+          file.type,
+          0.92
+        );
+      };
+
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('Failed to load image'));
+      };
+
+      img.src = url;
+    });
+  };
+
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!canEdit) return;
 
@@ -128,7 +187,7 @@ export function LogoManager({ canEdit }: LogoManagerProps) {
     }
 
     // Validate file size
-    const maxSize = file.type === 'image/svg+xml' ? 200 * 1024 : 512 * 1024; // 200KB for SVG, 512KB for others
+    const maxSize = file.type === 'image/svg+xml' ? 200 * 1024 : 2 * 1024 * 1024; // 200KB for SVG, 2MB for others
     if (file.size > maxSize) {
       const maxSizeMB = maxSize / (1024 * 1024);
       toast.error(`Datei zu groß. Maximum: ${maxSizeMB}MB`);
@@ -139,6 +198,36 @@ export function LogoManager({ canEdit }: LogoManagerProps) {
     setUploadProgress(0);
 
     try {
+      let fileToUpload: File | Blob = file;
+      let wasResized = false;
+      const isSvg = file.type === 'image/svg+xml';
+
+      // Resize raster images if needed
+      if (!isSvg && settings.logo_resize_target) {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        
+        await new Promise<void>((resolve, reject) => {
+          img.onload = () => {
+            URL.revokeObjectURL(url);
+            const maxDimension = Math.max(img.width, img.height);
+            if (maxDimension > settings.logo_resize_target!) {
+              wasResized = true;
+            }
+            resolve();
+          };
+          img.onerror = () => {
+            URL.revokeObjectURL(url);
+            reject(new Error('Failed to load image'));
+          };
+          img.src = url;
+        });
+
+        if (wasResized) {
+          fileToUpload = await resizeImage(file, settings.logo_resize_target);
+        }
+      }
+
       // Generate unique filename
       const timestamp = Date.now();
       const ext = file.name.split('.').pop();
@@ -147,7 +236,7 @@ export function LogoManager({ canEdit }: LogoManagerProps) {
       // Upload to Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('product-media')
-        .upload(`logos/${filename}`, file, {
+        .upload(`logos/${filename}`, fileToUpload, {
           cacheControl: '3600',
           upsert: false
         });
@@ -168,7 +257,14 @@ export function LogoManager({ canEdit }: LogoManagerProps) {
       if (dbError) throw dbError;
 
       setSettings(prev => ({ ...prev, logo_image_url: publicUrl }));
-      toast.success('Logo erfolgreich hochgeladen');
+      
+      if (isSvg) {
+        toast.success('Logo erfolgreich hochgeladen (Optimale Qualität - SVG)');
+      } else if (wasResized) {
+        toast.success('Logo erfolgreich hochgeladen (Bild wurde automatisch verkleinert)');
+      } else {
+        toast.success('Logo erfolgreich hochgeladen');
+      }
       
       // Clear file input
       if (fileInputRef.current) {
@@ -229,7 +325,7 @@ export function LogoManager({ canEdit }: LogoManagerProps) {
   const PreviewLogo = () => {
     const currentColor = isDarkPreview ? settings.logo_color_dark : settings.logo_color_light;
     const backgroundColor = isDarkPreview ? '#0f172a' : '#ffffff';
-    const logoHeight = isMobilePreview ? '32px' : '48px';
+    const logoHeight = `${settings.logo_max_height || 40}px`;
     const fontSize = isMobilePreview ? '1.25rem' : '1.5rem';
     
     const hasImage = settings.logo_image_url;
@@ -471,6 +567,66 @@ export function LogoManager({ canEdit }: LogoManagerProps) {
               </div>
             </div>
           </div>
+
+          <Separator />
+
+          {/* Size Settings */}
+          <div className="space-y-4">
+            <h4 className="font-medium">Größeneinstellungen</h4>
+            
+            <div>
+              <Label htmlFor="logoMaxHeight">Logo-Höhe im Frontend</Label>
+              <Select 
+                value={String(settings.logo_max_height)} 
+                onValueChange={(value) => {
+                  const height = parseInt(value);
+                  setSettings(prev => ({ ...prev, logo_max_height: height }));
+                  updateSettings({ logo_max_height: height });
+                }}
+                disabled={!canEdit || isLoading}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Höhe wählen" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="24">24 px</SelectItem>
+                  <SelectItem value="32">32 px</SelectItem>
+                  <SelectItem value="40">40 px (Standard)</SelectItem>
+                  <SelectItem value="48">48 px</SelectItem>
+                  <SelectItem value="64">64 px</SelectItem>
+                  <SelectItem value="80">80 px</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                Maximale Höhe des Logos im Header/Footer
+              </p>
+            </div>
+
+            <div>
+              <Label htmlFor="logoResizeTarget">Bild beim Upload automatisch skalieren auf</Label>
+              <Select 
+                value={String(settings.logo_resize_target)} 
+                onValueChange={(value) => {
+                  const target = parseInt(value);
+                  setSettings(prev => ({ ...prev, logo_resize_target: target }));
+                  updateSettings({ logo_resize_target: target });
+                }}
+                disabled={!canEdit || isLoading}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Zielgröße wählen" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="256">256 px</SelectItem>
+                  <SelectItem value="512">512 px (Standard)</SelectItem>
+                  <SelectItem value="1024">1024 px</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                SVG-Logos werden nicht skaliert. PNG/JPEG/WebP werden proportional verkleinert.
+              </p>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -519,9 +675,10 @@ export function LogoManager({ canEdit }: LogoManagerProps) {
         <CardContent>
           <PreviewLogo />
           <div className="mt-4 text-sm text-muted-foreground">
-            <p><strong>Höhe:</strong> {isMobilePreview ? '32px (Mobile)' : '48px (Desktop)'}</p>
+            <p><strong>Höhe:</strong> {settings.logo_max_height}px</p>
             <p><strong>Schrift:</strong> {settings.logo_font}</p>
             <p><strong>Farbe:</strong> {isDarkPreview ? settings.logo_color_dark : settings.logo_color_light}</p>
+            <p><strong>Upload-Skalierung:</strong> {settings.logo_resize_target}px (max. Dimension)</p>
           </div>
         </CardContent>
       </Card>
