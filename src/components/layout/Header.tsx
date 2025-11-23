@@ -12,6 +12,7 @@ interface LogoData {
   logo_alt?: string;
   use_text_logo_if_image_fails?: boolean;
   show_text_with_image?: boolean;
+  logo_max_height?: number;
 }
 
 export default function Header() {
@@ -21,7 +22,7 @@ export default function Header() {
   useEffect(() => {
     // Load header data with new logo fields
     supabase.from("homepage_header")
-      .select("logo_text, logo_font, logo_color_light, logo_color_dark, logo_image_url, logo_alt, use_text_logo_if_image_fails, show_text_with_image")
+      .select("logo_text, logo_font, logo_color_light, logo_color_dark, logo_image_url, logo_alt, use_text_logo_if_image_fails, show_text_with_image, logo_max_height")
       .eq("is_active", true)
       .maybeSingle()
       .then(({ data }) => {
@@ -52,6 +53,7 @@ export default function Header() {
       (headerData?.show_text_with_image === true) ||
       (imageLoadError && headerData?.use_text_logo_if_image_fails)
     );
+    const logoHeight = headerData?.logo_max_height || 40;
 
     return (
       <div className="flex items-center gap-3">
@@ -59,7 +61,12 @@ export default function Header() {
           <img 
             src={headerData.logo_image_url} 
             alt={headerData.logo_alt || `${headerData.logo_text || strings.brandName} Logo`}
-            className="h-8 object-contain"
+            style={{
+              maxHeight: `${logoHeight}px`,
+              height: 'auto',
+              width: 'auto'
+            }}
+            className="object-contain"
             onError={() => {
               if (headerData?.use_text_logo_if_image_fails) {
                 setImageLoadError(true);
