@@ -65,13 +65,15 @@ export default function Footer() {
       ? (logoData?.logo_color_dark || '#F5F5F5')
       : (logoData?.logo_color_light || '#1F2937');
 
-    const shouldShowImage = logoData?.logo_image_url && !imageLoadError;
-    const shouldShowText = !logoData?.logo_image_url || 
-                           (imageLoadError && logoData?.use_text_logo_if_image_fails);
+    const hasImage = logoData?.logo_image_url && !imageLoadError;
+    const showText = logoData?.logo_text && (
+      !logoData?.logo_image_url || 
+      (imageLoadError && logoData?.use_text_logo_if_image_fails)
+    );
 
     return (
-      <Link to="/" className="inline-block mb-4">
-        {shouldShowImage && (
+      <Link to="/" className="inline-flex items-center gap-3 mb-4">
+        {hasImage && (
           <img 
             src={logoData.logo_image_url} 
             alt={logoData.logo_alt || `${logoData.logo_text || strings.brandName} Logo`}
@@ -84,7 +86,7 @@ export default function Footer() {
           />
         )}
         
-        {shouldShowText && (
+        {(showText || !hasImage) && (
           <span 
             className="font-semibold text-xl"
             style={{ 

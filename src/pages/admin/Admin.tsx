@@ -37,7 +37,6 @@ export default function Admin() {
   const [socialLinks, setSocialLinks] = useState<any[]>([]);
   const [footerContactData, setFooterContactData] = useState<any>(null);
   
-  const [headerForm, setHeaderForm] = useState<any>({ logo_text: "", logo_image_url: "" });
   const [heroForm, setHeroForm] = useState<any>({
     title: "",
     subtitle: "",
@@ -144,9 +143,6 @@ const [prodForm, setProdForm] = useState<any>({
     setSocialLinks(socials || []);
     setFooterContactData(footerContact);
     
-    if (header) {
-      setHeaderForm({ logo_text: header.logo_text || "", logo_image_url: header.logo_image_url || "" });
-    }
     if (hero) {
       setHeroForm({
         title: hero.title || "",
@@ -310,21 +306,6 @@ const [prodForm, setProdForm] = useState<any>({
   };
 
   // Homepage CRUD
-  const saveHeader = async () => {
-    if (!isEditor) return;
-    const payload = {
-      logo_text: headerForm.logo_text || null,
-      logo_image_url: headerForm.logo_image_url || null,
-      is_active: true
-    };
-    const { error } = headerData?.id
-      ? await supabase.from("homepage_header").update(payload).eq("id", headerData.id)
-      : await supabase.from("homepage_header").insert(payload);
-    if (error) return toast.error(error.message);
-    await loadHomepageData();
-    toast.success("Header gespeichert");
-  };
-
   const saveHero = async () => {
     if (!isEditor) return;
     const payload = {
@@ -536,31 +517,6 @@ const [prodForm, setProdForm] = useState<any>({
         <TabsContent value="homepage" className="mt-6">
           <div className="space-y-8">
             <LogoManager canEdit={isEditor} />
-            
-            <Card>
-              <CardContent className="pt-6">
-                <h2 className="font-medium mb-4">Header bearbeiten (Legacy)</h2>
-                <div className="space-y-3">
-                  <div>
-                    <Label>Logo-Text</Label>
-                    <Input 
-                      value={headerForm.logo_text} 
-                      onChange={(e) => setHeaderForm({ ...headerForm, logo_text: e.target.value })} 
-                      placeholder="z.B. Holzmanufaktur"
-                    />
-                  </div>
-                  <div>
-                    <Label>Logo-Bild URL</Label>
-                    <Input 
-                      value={headerForm.logo_image_url} 
-                      onChange={(e) => setHeaderForm({ ...headerForm, logo_image_url: e.target.value })} 
-                      placeholder="https://..."
-                    />
-                  </div>
-                  <Button onClick={saveHeader} disabled={!isEditor}>Header speichern</Button>
-                </div>
-              </CardContent>
-            </Card>
 
             <Card>
               <CardContent className="pt-6">

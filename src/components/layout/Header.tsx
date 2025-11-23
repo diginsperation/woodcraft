@@ -45,18 +45,15 @@ export default function Header() {
       ? (headerData?.logo_color_dark || '#F5F5F5')
       : (headerData?.logo_color_light || '#1F2937');
 
-    // Show image logo if available and no error occurred
-    const shouldShowImage = headerData?.logo_image_url && !imageLoadError;
-    
-    // Show text logo if:
-    // - No image URL provided, OR
-    // - Image failed to load AND fallback is enabled
-    const shouldShowText = !headerData?.logo_image_url || 
-                           (imageLoadError && headerData?.use_text_logo_if_image_fails);
+    const hasImage = headerData?.logo_image_url && !imageLoadError;
+    const showText = headerData?.logo_text && (
+      !headerData?.logo_image_url || 
+      (imageLoadError && headerData?.use_text_logo_if_image_fails)
+    );
 
     return (
-      <>
-        {shouldShowImage && (
+      <div className="flex items-center gap-3">
+        {hasImage && (
           <img 
             src={headerData.logo_image_url} 
             alt={headerData.logo_alt || `${headerData.logo_text || strings.brandName} Logo`}
@@ -69,7 +66,7 @@ export default function Header() {
           />
         )}
         
-        {shouldShowText && (
+        {(showText || !hasImage) && (
           <span 
             className="font-semibold text-xl"
             style={{ 
@@ -80,7 +77,7 @@ export default function Header() {
             {headerData?.logo_text || strings.brandName}
           </span>
         )}
-      </>
+      </div>
     );
   };
 
