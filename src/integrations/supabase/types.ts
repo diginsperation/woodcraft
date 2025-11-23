@@ -128,8 +128,10 @@ export type Database = {
           logo_color_dark: string | null
           logo_color_light: string | null
           logo_font: string | null
+          logo_gap: number | null
           logo_image_url: string | null
           logo_max_height: number | null
+          logo_max_width: string | null
           logo_resize_target: number | null
           logo_text: string | null
           show_text_with_image: boolean | null
@@ -145,8 +147,10 @@ export type Database = {
           logo_color_dark?: string | null
           logo_color_light?: string | null
           logo_font?: string | null
+          logo_gap?: number | null
           logo_image_url?: string | null
           logo_max_height?: number | null
+          logo_max_width?: string | null
           logo_resize_target?: number | null
           logo_text?: string | null
           show_text_with_image?: boolean | null
@@ -162,8 +166,10 @@ export type Database = {
           logo_color_dark?: string | null
           logo_color_light?: string | null
           logo_font?: string | null
+          logo_gap?: number | null
           logo_image_url?: string | null
           logo_max_height?: number | null
+          logo_max_width?: string | null
           logo_resize_target?: number | null
           logo_text?: string | null
           show_text_with_image?: boolean | null

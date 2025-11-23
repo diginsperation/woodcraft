@@ -21,6 +21,8 @@ interface LogoSettings {
   use_text_logo_if_image_fails?: boolean;
   show_text_with_image?: boolean;
   logo_max_height?: number;
+  logo_max_width?: string;
+  logo_gap?: number;
   logo_resize_target?: number;
 }
 
@@ -44,6 +46,8 @@ export function LogoManager({ canEdit }: LogoManagerProps) {
     logo_alt: '',
     use_text_logo_if_image_fails: true,
     logo_max_height: 40,
+    logo_max_width: 'auto',
+    logo_gap: 8,
     logo_resize_target: 512
   });
   
@@ -79,6 +83,8 @@ export function LogoManager({ canEdit }: LogoManagerProps) {
           use_text_logo_if_image_fails: data.use_text_logo_if_image_fails ?? true,
           show_text_with_image: data.show_text_with_image ?? true,
           logo_max_height: data.logo_max_height ?? 40,
+          logo_max_width: data.logo_max_width || 'auto',
+          logo_gap: data.logo_gap ?? 8,
           logo_resize_target: data.logo_resize_target ?? 512
         });
       }
@@ -102,6 +108,8 @@ export function LogoManager({ canEdit }: LogoManagerProps) {
       if (updates.use_text_logo_if_image_fails !== undefined) payload.use_text_logo_if_image_fails = updates.use_text_logo_if_image_fails;
       if (updates.show_text_with_image !== undefined) payload.show_text_with_image = updates.show_text_with_image;
       if (updates.logo_max_height !== undefined) payload.logo_max_height = updates.logo_max_height;
+      if (updates.logo_max_width !== undefined) payload.logo_max_width = updates.logo_max_width;
+      if (updates.logo_gap !== undefined) payload.logo_gap = updates.logo_gap;
       if (updates.logo_resize_target !== undefined) payload.logo_resize_target = updates.logo_resize_target;
       
       payload.is_active = true;
@@ -325,7 +333,16 @@ export function LogoManager({ canEdit }: LogoManagerProps) {
   const PreviewLogo = () => {
     const currentColor = isDarkPreview ? settings.logo_color_dark : settings.logo_color_light;
     const backgroundColor = isDarkPreview ? '#0f172a' : '#ffffff';
-    const logoHeight = `${settings.logo_max_height || 40}px`;
+    
+    // Apply responsive sizing
+    let effectiveHeight = settings.logo_max_height || 40;
+    if (isMobilePreview) {
+      effectiveHeight = Math.min(effectiveHeight, 28);
+    }
+    
+    const logoMaxHeight = `${effectiveHeight}px`;
+    const logoMaxWidth = settings.logo_max_width === 'auto' ? 'auto' : `${settings.logo_max_width}px`;
+    const logoGap = `${Math.min(settings.logo_gap || 8, isMobilePreview ? 8 : 999)}px`;
     const fontSize = isMobilePreview ? '1.25rem' : '1.5rem';
     
     const hasImage = settings.logo_image_url;
@@ -340,13 +357,22 @@ export function LogoManager({ canEdit }: LogoManagerProps) {
         style={{ backgroundColor }}
       >
         <div className="flex items-center justify-center min-h-[60px]">
-          <div className="flex items-center gap-3">
+          <div 
+            className="flex items-center"
+            style={{ gap: logoGap }}
+          >
             {hasImage && (
               <img 
                 src={settings.logo_image_url}
                 alt={settings.logo_alt || `${settings.logo_text} Logo`}
-                style={{ height: logoHeight, width: 'auto' }}
-                className="object-contain"
+                style={{ 
+                  maxHeight: logoMaxHeight,
+                  maxWidth: logoMaxWidth,
+                  height: 'auto',
+                  width: 'auto',
+                  objectFit: 'contain',
+                  objectPosition: 'center left'
+                }}
               />
             )}
             
@@ -603,7 +629,65 @@ export function LogoManager({ canEdit }: LogoManagerProps) {
             </div>
 
             <div>
-              <Label htmlFor="logoResizeTarget">Bild beim Upload automatisch skalieren auf</Label>
+              <Label htmlFor="logoMaxWidth">Logo-Breite im Frontend</Label>
+              <Select 
+                value={settings.logo_max_width || 'auto'} 
+                onValueChange={(value) => {
+                  setSettings(prev => ({ ...prev, logo_max_width: value }));
+                  updateSettings({ logo_max_width: value });
+                }}
+                disabled={!canEdit || isLoading}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Breite wählen" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="auto">auto (proportional)</SelectItem>
+                  <SelectItem value="24">24 px</SelectItem>
+                  <SelectItem value="32">32 px</SelectItem>
+                  <SelectItem value="40">40 px</SelectItem>
+                  <SelectItem value="48">48 px</SelectItem>
+                  <SelectItem value="64">64 px</SelectItem>
+                  <SelectItem value="80">80 px</SelectItem>
+                  <SelectItem value="120">120 px</SelectItem>
+                  <SelectItem value="160">160 px</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                Maximale Breite des Logos (auto = proportional zur Höhe)
+              </p>
+            </div>
+
+            <div>
+              <Label htmlFor="logoGap">Abstand zwischen Bild- und Textlogo</Label>
+              <Select 
+                value={String(settings.logo_gap)} 
+                onValueChange={(value) => {
+                  const gap = parseInt(value);
+                  setSettings(prev => ({ ...prev, logo_gap: gap }));
+                  updateSettings({ logo_gap: gap });
+                }}
+                disabled={!canEdit || isLoading}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Abstand wählen" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="4">4 px</SelectItem>
+                  <SelectItem value="6">6 px</SelectItem>
+                  <SelectItem value="8">8 px (Standard)</SelectItem>
+                  <SelectItem value="10">10 px</SelectItem>
+                  <SelectItem value="12">12 px</SelectItem>
+                  <SelectItem value="16">16 px</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                Abstand zwischen Bild- und Text-Logo
+              </p>
+            </div>
+
+            <div>
+              <Label htmlFor="logoResizeTarget">Maximale Upload-Auflösung</Label>
               <Select 
                 value={String(settings.logo_resize_target)} 
                 onValueChange={(value) => {
@@ -623,7 +707,7 @@ export function LogoManager({ canEdit }: LogoManagerProps) {
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground mt-1">
-                SVG-Logos werden nicht skaliert. PNG/JPEG/WebP werden proportional verkleinert.
+                SVG-Dateien werden nie skaliert und bleiben immer gestochen scharf. PNG/JPEG/WebP werden proportional verkleinert.
               </p>
             </div>
           </div>
